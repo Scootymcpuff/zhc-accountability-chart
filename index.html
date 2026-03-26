@@ -214,7 +214,7 @@
             border-top: 1px solid #334155;
         }
 
-        /* Tree structure with lines drawn from parent, not to children */
+        /* Simplified tree structure - lines controlled by explicit classes */
 
         .tree-node {
             position: relative;
@@ -227,24 +227,6 @@
             position: relative;
         }
 
-        /* Vertical line extending DOWN from parent node when it has children */
-        .tree-node:has(> .children.has-children) > .node-content::after {
-            content: '';
-            position: absolute;
-            bottom: -52px; /* Extend below the card, into the padding area */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 50px;
-            background: #475569;
-            z-index: 1;
-        }
-
-        /* Root nodes should NOT have any line above them */
-        .tree-node.root-node > .node-content::before {
-            display: none !important;
-        }
-
         .child-wrapper {
             display: flex;
             flex-direction: column;
@@ -253,9 +235,28 @@
             position: relative;
         }
 
-        /* Vertical line going UP from each child to meet the horizontal bar */
-        .child-wrapper::before {
-            content: '';
+        /* Tree lines using real div elements */
+
+        .node-content {
+            position: relative;
+        }
+
+        /* Vertical line extending DOWN from parent to meet horizontal bar */
+        /* The .children container has 50px padding-top, so we need exactly 50px */
+        .vertical-line-down {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 50px;
+            background: #475569;
+            pointer-events: none;
+        }
+
+        /* Vertical line extending UP from child to meet horizontal bar */
+        /* Extends from the child UPWARD to the horizontal bar (which is at top: -50px) */
+        .vertical-line-up {
             position: absolute;
             top: -50px;
             left: 50%;
@@ -263,43 +264,30 @@
             width: 2px;
             height: 50px;
             background: #475569;
+            pointer-events: none;
         }
 
-        /* Horizontal connector between siblings - only when 2+ children */
-        .children.multiple-children::after {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            height: 2px;
-            background: transparent; /* We draw segments on children instead */
-        }
-
-        /* Horizontal line segments on each child wrapper for multiple children */
-        .children.multiple-children > .child-wrapper::after {
-            content: '';
+        /* Horizontal connector between siblings */
+        /* Positioned at the level where vertical lines meet (50px above the children) */
+        .horizontal-line {
             position: absolute;
             top: -50px;
             height: 2px;
             background: #475569;
+            pointer-events: none;
         }
 
-        /* First child: from center to right */
-        .children.multiple-children > .child-wrapper:first-child::after {
+        .child-wrapper:first-child .horizontal-line {
             left: 50%;
             right: 0;
         }
 
-        /* Last child: from left to center */
-        .children.multiple-children > .child-wrapper:last-child::after {
+        .child-wrapper:last-child .horizontal-line {
             left: 0;
             right: 50%;
         }
 
-        /* Middle children: full width */
-        .children.multiple-children > .child-wrapper:not(:first-child):not(:last-child)::after {
+        .child-wrapper:not(:first-child):not(:last-child) .horizontal-line {
             left: 0;
             right: 0;
         }
@@ -963,32 +951,35 @@
             const multipleChildren = hasChildren && node.children.length > 1;
             const nodeColor = getTypeColor(node.type);
             
-            // Root nodes don't get the child-wrapper, so no line above them
-            // Non-root nodes ARE wrapped in child-wrapper by their parent
-            
-            let html = `
-                <div class="tree-node ${isRoot ? 'root-node' : ''}">
-                    <div class="node-content">
-                        <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
-                            <div class="node-name">${node.name}</div>
-                            <div class="node-role">${node.role}</div>
-                            ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
-                        </div>
+            // Build the node card
+            let nodeHtml = `
+                <div class="node-content">
+                    ${hasChildren ? '<div class="vertical-line-down"></div>' : ''}
+                    <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
+                        <div class="node-name">${node.name}</div>
+                        <div class="node-role">${node.role}</div>
+                        ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
                     </div>
+                </div>
             `;
             
+            // Build children if any
+            let childrenHtml = '';
             if (hasChildren) {
                 const childrenClass = multipleChildren ? 'children has-children multiple-children' : 'children has-children';
-                html += `<div class="${childrenClass}">`;
+                childrenHtml += `<div class="${childrenClass}">`;
                 node.children.forEach(child => {
-                    // Pass false for isRoot - these are children, not root nodes
-                    html += `<div class="child-wrapper">${renderTreeNode(child, false)}</div>`;
+                    // Each child wrapper gets a line going up
+                    childrenHtml += `<div class="child-wrapper">
+                        ${!isRoot ? '<div class="vertical-line-up"></div>' : ''}
+                        ${multipleChildren ? '<div class="horizontal-line"></div>' : ''}
+                        ${renderTreeNode(child, false)}
+                    </div>`;
                 });
-                html += '</div>';
+                childrenHtml += '</div>';
             }
             
-            html += '</div>';
-            return html;
+            return `<div class="tree-node ${isRoot ? 'root-node' : ''}">${nodeHtml}${childrenHtml}</div>`;
         }
 
         // Zoom state

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    background: #0f172a; 
+    font-family: sans-serif;
+    padding: 40px;
+}
+
+.tree {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.node {
+    background: #1e293b;
+    border: 2px solid #3b82f6;
+    padding: 15px 30px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.children {
+    display: flex;
+    padding-top: 40px;
+    position: relative;
+}
+
+/* Line from parent down */
+.children::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 40px;
+    background: #475569;
+    transform: translateX(-50%);
+}
+
+.child {
+    padding: 0 20px;
+    position: relative;
+}
+
+/* Line up to parent */
+.child::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    width: 2px;
+    height: 40px;
+    background: #475569;
+    transform: translateX(-50%);
+}
+
+/* Horizontal connector for multiple children */
+.child::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    height: 2px;
+    background: #475569;
+}
+
+/* Only show horizontal when there's multiple children */
+.children:has(> .child + .child) > .child::after {
+    display: block;
+}
+
+.children:not(:has(> .child + .child)) > .child::after {
+    display: none;
+}
+
+/* First child - right half */
+.children:has(> .child + .child) > .child:first-child::after {
+    left: 50%;
+    right: 0;
+}
+
+/* Last child - left half */
+.children:has(> .child + .child) > .child:last-child::after {
+    left: 0;
+    right: 50%;
+}
+
+/* Middle children - full */
+.children:has(> .child + .child) > .child:not(:first-child):not(:last-child)::after {
+    left: 0;
+    right: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="tree">
+    <div class="node">
+        <div>Nathaniel Hubbard</div>
+        <div style="font-size: 12px; color: #94a3b8;">Chairman</div>
+    </div>
+    <div class="children">
+        <div class="child">
+            <div class="node">
+                <div>Belisarius</div>
+                <div style="font-size: 12px; color: #94a3b8;">CEO</div>
+            </div>
+        </div>
+        <div class="child">
+            <div class="node">
+                <div>Other</div>
+                <div style="font-size: 12px; color: #94a3b8;">Role</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
