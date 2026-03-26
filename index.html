@@ -214,6 +214,14 @@
             border-top: 1px solid #334155;
         }
 
+        /* Tree structure with explicit line control */
+        
+        /* Root nodes should never have lines above them */
+        .root-node > .node-content::before,
+        .root-node > .node-content::after {
+            display: none !important;
+        }
+
         .children {
             display: flex;
             justify-content: center;
@@ -221,7 +229,11 @@
             position: relative;
         }
 
-        /* Vertical line from parent down to children level - only when has-children class is present */
+        /* Container for children - draws the vertical line down from parent */
+        .children.has-children {
+            /* This container holds the vertical line */
+        }
+
         .children.has-children::before {
             content: '';
             position: absolute;
@@ -241,7 +253,7 @@
             position: relative;
         }
 
-        /* Vertical line up from child to horizontal connector - always present for children */
+        /* Vertical line going UP from child to meet the horizontal connector */
         .child-wrapper::before {
             content: '';
             position: absolute;
@@ -253,7 +265,7 @@
             background: #475569;
         }
 
-        /* Horizontal connector bar - only when multiple-children class is present */
+        /* Horizontal connector between siblings - only when 2+ children */
         .children.multiple-children > .child-wrapper::after {
             content: '';
             position: absolute;
@@ -262,13 +274,13 @@
             background: #475569;
         }
 
-        /* First child: horizontal line extends from center to right edge */
+        /* First child: horizontal line from center to right */
         .children.multiple-children > .child-wrapper:first-child::after {
             left: 50%;
             right: 0;
         }
 
-        /* Last child: horizontal line extends from left edge to center */
+        /* Last child: horizontal line from left to center */
         .children.multiple-children > .child-wrapper:last-child::after {
             left: 0;
             right: 50%;
@@ -933,13 +945,17 @@
         }
 
         // Render tree recursively
-        function renderTreeNode(node) {
+        // isRoot parameter: true for top-level nodes, false for children
+        function renderTreeNode(node, isRoot = true) {
             const hasChildren = node.children && node.children.length > 0;
             const multipleChildren = hasChildren && node.children.length > 1;
             const nodeColor = getTypeColor(node.type);
             
+            // Root nodes don't get the child-wrapper, so no line above them
+            // Non-root nodes ARE wrapped in child-wrapper by their parent
+            
             let html = `
-                <div class="tree-node">
+                <div class="tree-node ${isRoot ? 'root-node' : ''}">
                     <div class="node-content">
                         <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
                             <div class="node-name">${node.name}</div>
@@ -953,7 +969,8 @@
                 const childrenClass = multipleChildren ? 'children has-children multiple-children' : 'children has-children';
                 html += `<div class="${childrenClass}">`;
                 node.children.forEach(child => {
-                    html += `<div class="child-wrapper">${renderTreeNode(child)}</div>`;
+                    // Pass false for isRoot - these are children, not root nodes
+                    html += `<div class="child-wrapper">${renderTreeNode(child, false)}</div>`;
                 });
                 html += '</div>';
             }
