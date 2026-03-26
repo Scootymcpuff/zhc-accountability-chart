@@ -767,10 +767,10 @@
         let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
         let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
         let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
-            { id: 1, name: "Nathaniel Hubbard", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
-            { id: 2, name: "Belisarius", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
-            { id: 3, name: "Ghost", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
-            { id: 4, name: "Ironhide", role: "Maintenance Ops Lead", domain: "Maintenance", reportsTo: 3, type: "ai-agent", accountabilities: "Equipment maintenance; field operations", decisions: "Maintenance scheduling; parts procurement" }
+            { id: 1, name: "Alex Mercer", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
+            { id: 2, name: "Jordan Blake", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
+            { id: 3, name: "Taylor Reed", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
+            { id: 4, name: "Morgan Chase", role: "Operations Manager", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
         ];
 
         let editingId = null;
