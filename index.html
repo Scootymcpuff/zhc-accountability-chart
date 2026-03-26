@@ -221,8 +221,8 @@
             position: relative;
         }
 
-        /* Only show vertical line from parent when there are actual children */
-        .children:has(> .child-wrapper)::before {
+        /* Vertical line from parent down to children level - only when has-children class is present */
+        .children.has-children::before {
             content: '';
             position: absolute;
             top: 0;
@@ -241,7 +241,7 @@
             position: relative;
         }
 
-        /* Vertical line up from child - only show when there are siblings */
+        /* Vertical line up from child to horizontal connector - always present for children */
         .child-wrapper::before {
             content: '';
             position: absolute;
@@ -253,8 +253,8 @@
             background: #475569;
         }
 
-        /* Horizontal connector bar - only when there are multiple children */
-        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper::after {
+        /* Horizontal connector bar - only when multiple-children class is present */
+        .children.multiple-children > .child-wrapper::after {
             content: '';
             position: absolute;
             top: -50px;
@@ -263,19 +263,19 @@
         }
 
         /* First child: horizontal line extends from center to right edge */
-        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper:first-child::after {
+        .children.multiple-children > .child-wrapper:first-child::after {
             left: 50%;
             right: 0;
         }
 
         /* Last child: horizontal line extends from left edge to center */
-        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper:last-child::after {
+        .children.multiple-children > .child-wrapper:last-child::after {
             left: 0;
             right: 50%;
         }
 
         /* Middle children: full width horizontal line */
-        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper:not(:first-child):not(:last-child)::after {
+        .children.multiple-children > .child-wrapper:not(:first-child):not(:last-child)::after {
             left: 0;
             right: 0;
         }
@@ -935,6 +935,7 @@
         // Render tree recursively
         function renderTreeNode(node) {
             const hasChildren = node.children && node.children.length > 0;
+            const multipleChildren = hasChildren && node.children.length > 1;
             const nodeColor = getTypeColor(node.type);
             
             let html = `
@@ -949,7 +950,8 @@
             `;
             
             if (hasChildren) {
-                html += '<div class="children">';
+                const childrenClass = multipleChildren ? 'children has-children multiple-children' : 'children has-children';
+                html += `<div class="${childrenClass}">`;
                 node.children.forEach(child => {
                     html += `<div class="child-wrapper">${renderTreeNode(child)}</div>`;
                 });
