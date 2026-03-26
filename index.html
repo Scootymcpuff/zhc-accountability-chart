@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accountability Chart</title>
+    <title>Organizational Accountability Chart</title>
     <style>
         * {
             margin: 0;
@@ -12,359 +12,59 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0f172a;
             color: #e2e8f0;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            padding: 20px 30px;
-            border-bottom: 1px solid #334155;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-        }
-
-        .header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
         }
 
         .company-name {
             font-size: 24px;
-            font-weight: 600;
+            font-weight: 700;
             color: #f8fafc;
-            background: transparent;
-            border: none;
-            padding: 0;
-            font-family: inherit;
-            width: auto;
-            min-width: 200px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
         .company-name:hover {
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin: -4px -8px;
-        }
-
-        .company-name:focus {
-            outline: none;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin: -4px -8px;
-        }
-
-        .header span {
-            color: #64748b;
-            font-size: 14px;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .header-actions {
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .file-btn {
-            padding: 8px 16px;
-            background: #334155;
-            border: 1px solid #475569;
-            border-radius: 6px;
-            color: #e2e8f0;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .file-btn:hover {
-            background: #475569;
-            border-color: #64748b;
-        }
-
-        .file-btn svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-
-        .tab:hover {
-            background: #334155;
-        }
-
-        .tab.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-
-        /* Chart View */
-        .chart-view {
-            display: none;
-        }
-
-        .chart-view.active {
-            display: block;
-        }
-
-        .org-tree {
-            display: flex;
-            justify-content: center;
-            padding: 40px;
-            overflow: hidden;
-            position: relative;
-            height: calc(100vh - 200px);
-            cursor: grab;
-        }
-
-        .org-tree:active {
-            cursor: grabbing;
-        }
-
-        .tree-container {
-            transform-origin: top center;
-            transition: transform 0.1s ease-out;
-        }
-
-        .tree {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .tree-node {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .node-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .node-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid var(--node-color, #3b82f6);
-            border-radius: 12px;
-            padding: 16px 24px;
-            min-width: 200px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .node-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--node-color, #3b82f6);
-        }
-
-        .node-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f8fafc;
-            margin-bottom: 4px;
-        }
-
-        .node-role {
-            font-size: 13px;
-            color: #94a3b8;
-        }
-
-        .node-domain {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid #334155;
-        }
-
-        /* --- Perfect Connection Lines (Using Pseudo-Elements) --- */
-
-        .children {
-            display: flex;
-            justify-content: center;
-            padding-top: 40px; /* Gap between parent and children */
-            position: relative;
-        }
-
-        /* 1. Vertical line going DOWN from parent. It stops exactly halfway (20px). */
-        .children::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 20px; 
-            background: #475569;
-        }
-
-        .child-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 15px; /* Spacing between siblings */
-            position: relative;
-        }
-
-        /* 2. Vertical line going UP from child. It connects child to horizontal line. */
-        .child-wrapper::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 20px;
-            background: #475569;
-        }
-
-        /* 3. Horizontal connection lines between siblings */
-        .child-wrapper::after {
-            content: '';
-            position: absolute;
-            top: -20px;
-            height: 2px;
-            background: #475569;
-        }
-
-        /* Logic to hide/show horizontal lines depending on if it's an only child, first, or last */
-        .child-wrapper:only-child::after {
-            display: none;
-        }
-
-        .child-wrapper:first-child:not(:only-child)::after {
-            left: 50%;
-            right: 0;
-        }
-
-        .child-wrapper:last-child:not(:only-child)::after {
-            left: 0;
-            right: 50%;
-        }
-
-        .child-wrapper:not(:first-child):not(:last-child)::after {
-            left: 0;
-            right: 0;
-        }
-
-        /* --- End Lines --- */
-
-        .edit-view {
-            display: none;
-        }
-
-        .edit-view.active {
-            display: block;
-        }
-
-        .edit-layout {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 30px;
-        }
-
-        .form-panel {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 24px;
-            border: 1px solid #334155;
-            height: fit-content;
-            position: sticky;
-            top: 30px;
-        }
-
-        .form-panel h2 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #f8fafc;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
+            gap: 12px;
         }
 
         .btn {
-            padding: 12px 20px;
+            padding: 10px 18px;
             border: none;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            width: 100%;
-            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn-primary {
@@ -377,733 +77,1027 @@
         }
 
         .btn-secondary {
-            background: #334155;
+            background: rgba(255, 255, 255, 0.1);
             color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .btn-secondary:hover {
-            background: #475569;
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .btn-danger {
-            background: #dc2626;
+            background: #ef4444;
             color: white;
         }
 
         .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-group .btn {
-            flex: 1;
-        }
-
-        .list-panel {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 24px;
-            border: 1px solid #334155;
-        }
-
-        .list-panel h2 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #f8fafc;
-        }
-
-        .person-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .person-item {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .person-item:hover {
-            border-color: #3b82f6;
-        }
-
-        .person-item.selected {
-            border-color: #3b82f6;
-            background: #1e3a5f;
-        }
-
-        .person-info h3 {
-            font-size: 15px;
-            color: #f8fafc;
-            margin-bottom: 4px;
-        }
-
-        .person-info p {
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .person-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 6px;
-            background: #334155;
-            color: #94a3b8;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .icon-btn:hover {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .icon-btn.delete:hover {
             background: #dc2626;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #64748b;
+        .main-container {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
         }
 
-        .empty-state h3 {
-            font-size: 18px;
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            position: relative;
+        }
+
+        .chart-container:active {
+            cursor: grabbing;
+        }
+
+        .chart-content {
+            position: absolute;
+            transform-origin: center top;
+            padding: 80px;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        /* Tree Structure */
+        .org-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .node-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Card Styling */
+        .person-card {
+            background: #1e293b;
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 220px;
+            max-width: 280px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            z-index: 10;
+        }
+
+        .person-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .person-card.selected {
+            box-shadow: 0 0 0 3px #3b82f6, 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
             margin-bottom: 8px;
+        }
+
+        .person-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 2px;
+        }
+
+        .person-role {
+            font-size: 13px;
             color: #94a3b8;
         }
 
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .meta-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+        }
+
+        /* Tree Lines - Clean Implementation */
+        .children-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding-top: 40px;
+            position: relative;
+        }
+
+        /* Parent vertical line (goes down 20px from parent) */
+        .parent-line {
+            width: 2px;
+            height: 20px;
+            background: #64748b;
+            margin: 0 auto;
+        }
+
+        /* Children wrapper with connection logic */
+        .child-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Child vertical line (goes up 20px to meet parent line) */
+        .child-line {
+            width: 2px;
+            height: 20px;
+            background: #64748b;
+        }
+
+        /* Horizontal bar connecting multiple children */
+        .children-horizontal-line {
+            position: absolute;
+            top: 20px;
+            height: 2px;
+            background: #64748b;
+        }
+
+        /* Single child - no horizontal line, just direct connection */
+        .single-child .children-horizontal-line {
+            display: none;
+        }
+
+        /* Zoom Controls */
         .zoom-controls {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             display: flex;
+            flex-direction: column;
             gap: 8px;
             z-index: 100;
+            background: rgba(30, 41, 59, 0.95);
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .zoom-btn {
             width: 40px;
             height: 40px;
+            border: none;
             border-radius: 8px;
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: rgba(255, 255, 255, 0.1);
             color: #e2e8f0;
             font-size: 20px;
             cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
         }
 
         .zoom-btn:hover {
-            background: #334155;
-            border-color: #475569;
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .legend {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
+        .zoom-level {
+            text-align: center;
+            font-size: 12px;
             color: #94a3b8;
+            padding: 4px 0;
         }
 
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            right: -420px;
+            width: 400px;
+            height: calc(100vh - 60px);
+            background: #1e293b;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transition: right 0.3s ease;
+            z-index: 90;
+            overflow-y: auto;
+            padding: 24px;
         }
 
-        .role-types-section {
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .close-btn:hover {
+            color: #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
             margin-top: 24px;
             padding-top: 24px;
-            border-top: 1px solid #334155;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .role-types-section h3 {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-bottom: 12px;
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        /* Role Types Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+
+        .role-type-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .role-type-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            padding: 12px;
+            background: #0f172a;
+            border-radius: 8px;
         }
 
-        .role-type-item input[type="text"] {
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .role-type-input {
             flex: 1;
-            padding: 8px 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
+            padding: 10px 12px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             color: #e2e8f0;
-            font-size: 13px;
+            font-size: 14px;
         }
 
-        .role-type-item input[type="color"] {
-            width: 40px;
-            height: 32px;
+        .role-delete {
+            background: none;
             border: none;
-            border-radius: 6px;
+            color: #ef4444;
+            font-size: 20px;
             cursor: pointer;
-            background: transparent;
-        }
-
-        .role-type-item .icon-btn {
-            width: 28px;
-            height: 28px;
+            padding: 4px 8px;
         }
 
         .add-role-btn {
-            background: transparent;
-            border: 1px dashed #475569;
-            color: #64748b;
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
             width: 100%;
-            margin-top: 8px;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px dashed #3b82f6;
+            border-radius: 8px;
+            color: #3b82f6;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
         .add-role-btn:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.3);
         }
 
-        @media (max-width: 900px) {
-            .edit-layout {
-                grid-template-columns: 1fr;
-            }
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
 
-            .form-panel {
-                position: static;
-            }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
 
-            .header-actions {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #f8fafc;
+        }
 
-            .file-actions {
-                order: 2;
-                width: 100%;
-            }
+        .empty-state p {
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
 
-            .org-tree {
-                height: calc(100vh - 250px);
-            }
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
 
-            .zoom-controls {
-                bottom: 10px;
-                right: 10px;
-            }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
 
-            .zoom-btn {
-                width: 36px;
-                height: 36px;
-            }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
 
-            .children {
-                flex-direction: column;
-                align-items: center;
-                gap: 30px;
-            }
-
-            .child-wrapper {
-                padding: 20px 0;
-            }
-
-            /* Hide all lines on mobile layout */
-            .child-wrapper::before,
-            .children::before,
-            .child-wrapper::after {
-                display: none;
-            }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="header-left">
-            <input type="text" class="company-name" id="companyName" value="Kasko Cattle">
-            <span>Organizational Accountability Chart</span>
-        </div>
+        <div class="company-name" id="companyName" contenteditable="true" spellcheck="false">ACME Corporation</div>
         <div class="header-actions">
-            <div class="file-actions">
-                <button class="file-btn" onclick="exportData()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Save to File
-                </button>
-                <button class="file-btn" onclick="document.getElementById('fileInput').click()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    Load from File
-                </button>
-                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importData(this)">
-            </div>
-            <div class="tabs">
-                <button class="tab active" onclick="showView('chart')">Chart View</button>
-                <button class="tab" onclick="showView('edit')">Edit People</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+                📥 Import
+            </button>
+            <button class="btn btn-secondary" onclick="exportData()">
+                📤 Export
+            </button>
+            <button class="btn btn-secondary" onclick="openRoleTypesModal()">
+                🎨 Role Types
+            </button>
+            <button class="btn btn-primary" onclick="addNewPerson()">
+                + Add Person
+            </button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="chart-container" id="chartContainer">
+            <div class="chart-content" id="chartContent">
+                <div id="orgChart"></div>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <div id="chartView" class="chart-view active">
-            <div class="legend" id="legend"></div>
-            <div class="zoom-controls">
-                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
-                <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
-                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
-            </div>
-            <div id="orgTree" class="org-tree"></div>
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
+        <div class="zoom-level" id="zoomLevel">100%</div>
+        <button class="zoom-btn" onclick="zoomOut()">−</button>
+        <button class="zoom-btn" onclick="resetZoom()">⟲</button>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title" id="sidebarTitle">Edit Person</h3>
+            <button class="close-btn" onclick="closeSidebar()">×</button>
         </div>
+        <form id="personForm" onsubmit="savePerson(event)">
+            <input type="hidden" id="personId">
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-input" id="personName" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <input type="text" class="form-input" id="personRole" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Domain</label>
+                <input type="text" class="form-input" id="personDomain" placeholder="e.g., Finance, Operations">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reports To</label>
+                <select class="form-select" id="personReportsTo">
+                    <option value="">None (Top Level)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select class="form-select" id="personType">
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Accountabilities</label>
+                <textarea class="form-textarea" id="personAccountabilities" placeholder="List key accountabilities..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Decision Rights</label>
+                <textarea class="form-textarea" id="personDecisionRights" placeholder="List decision-making authority..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-danger" id="deleteBtn" onclick="deletePerson()">Delete</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
 
-        <div id="editView" class="edit-view">
-            <div class="edit-layout">
-                <div class="form-panel">
-                    <h2 id="formTitle">Add Person</h2>
-                    <form id="personForm">
-                        <input type="hidden" id="personId">
-                        <div class="form-group">
-                            <label>Name</label>
-                            <input type="text" id="name" placeholder="e.g., John Smith" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Role / Title</label>
-                            <input type="text" id="role" placeholder="e.g., Operations Manager" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Domain / Function</label>
-                            <input type="text" id="domain" placeholder="e.g., Operations">
-                        </div>
-                        <div class="form-group">
-                            <label>Reports To</label>
-                            <select id="reportsTo">
-                                <option value="">None (Top Level)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Type</label>
-                            <select id="type"></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Key Accountabilities</label>
-                            <textarea id="accountabilities" placeholder="What this role is responsible for..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Decision Rights</label>
-                            <textarea id="decisions" placeholder="What decisions can this role make..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Person</button>
-                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear Form</button>
-                        <button type="button" id="deleteBtn" class="btn btn-danger" style="display: none; margin-top: 10px;" onclick="deletePerson()">Delete Person</button>
-                    </form>
-
-                    <div class="role-types-section">
-                        <h3>Role Types</h3>
-                        <div id="roleTypesList"></div>
-                        <button class="add-role-btn" onclick="addRoleType()">+ Add Role Type</button>
-                    </div>
-                </div>
-
-                <div class="list-panel">
-                    <h2>People</h2>
-                    <div id="personList" class="person-list"></div>
-                </div>
+    <div class="modal-overlay" id="roleTypesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Role Types</h3>
+                <button class="close-btn" onclick="closeRoleTypesModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="role-type-list" id="roleTypeList"></div>
+                <button class="add-role-btn" onclick="addRoleType()" style="margin-top: 16px;">+ Add Role Type</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRoleTypesModal()">Close</button>
+                <button class="btn btn-primary" onclick="saveRoleTypes()">Save Changes</button>
             </div>
         </div>
     </div>
 
     <script>
-        const defaultRoleTypes = [
-            { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
-            { id: 'ai-agent', name: 'AI Agent', color: '#10b981' },
-            { id: 'human', name: 'Human Team', color: '#3b82f6' }
-        ];
+        // State
+        let state = {
+            companyName: 'ACME Corporation',
+            people: [],
+            roleTypes: [
+                { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
+                { id: 'ceo', name: 'CEO', color: '#3b82f6' },
+                { id: 'cfo', name: 'CFO', color: '#10b981' },
+                { id: 'coo', name: 'COO', color: '#8b5cf6' },
+                { id: 'manager', name: 'Manager', color: '#ec4899' },
+                { id: 'human', name: 'Human Team', color: '#06b6d4' },
+                { id: 'ai', name: 'AI Agent', color: '#6366f1' }
+            ]
+        };
 
-        let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
-        let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
-        let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
-            { id: 1, name: "Alex Mercer", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
-            { id: 2, name: "Jordan Blake", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
-            { id: 3, name: "Taylor Reed", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
-            { id: 4, name: "Morgan Chase", role: "Operations Manager", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
-        ];
-
-        let editingId = null;
-
-        function saveData() {
-            localStorage.setItem('org_chart_company_name', companyName);
-            localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
-            localStorage.setItem('org_chart_people', JSON.stringify(people));
-        }
-
-        function init() {
-            document.getElementById('companyName').value = companyName;
-            renderRoleTypes();
-            updateTypeSelect();
-            showView('chart');
-        }
-
-        document.getElementById('companyName').addEventListener('change', function() {
-            companyName = this.value;
-            saveData();
-        });
-
-        function showView(view) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.chart-view, .edit-view').forEach(v => v.classList.remove('active'));
-            
-            if (view === 'chart') {
-                document.getElementById('chartView').classList.add('active');
-                document.querySelectorAll('.tab')[0].classList.add('active');
-                renderTree();
-                renderLegend();
-            } else {
-                document.getElementById('editView').classList.add('active');
-                document.querySelectorAll('.tab')[1].classList.add('active');
-                renderList();
-                updateReportsToOptions();
-                renderRoleTypes();
-            }
-        }
-
-        function renderLegend() {
-            const container = document.getElementById('legend');
-            container.innerHTML = roleTypes.map(rt => `
-                <div class="legend-item">
-                    <div class="legend-dot" style="background: ${rt.color}"></div>
-                    <span>${rt.name}</span>
-                </div>
-            `).join('');
-        }
-
-        function buildTree() {
-            const root = people.filter(p => !p.reportsTo);
-            
-            function addChildren(parent) {
-                const children = people.filter(p => p.reportsTo === parent.id);
-                return { ...parent, children: children.map(addChildren) };
-            }
-            
-            return root.map(addChildren);
-        }
-
-        function getTypeColor(typeId) {
-            const type = roleTypes.find(rt => rt.id === typeId);
-            return type ? type.color : '#3b82f6';
-        }
-
-        // --- Dramatically Simplified JS function for rendering the tree ---
-        function renderTreeNode(node, level = 0) {
-            const hasChildren = node.children && node.children.length > 0;
-            const nodeColor = getTypeColor(node.type);
-            const isRoot = level === 0;
-            
-            let nodeHtml = `
-                <div class="node-content">
-                    <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
-                        <div class="node-name">${node.name}</div>
-                        <div class="node-role">${node.role}</div>
-                        ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
-                    </div>
-                </div>
-            `;
-            
-            let childrenHtml = '';
-            if (hasChildren) {
-                childrenHtml += `<div class="children">`;
-                node.children.forEach((child) => {
-                    childrenHtml += `
-                        <div class="child-wrapper">
-                            ${renderTreeNode(child, level + 1)}
-                        </div>`;
-                });
-                childrenHtml += `</div>`;
-            }
-            
-            return `<div class="tree-node ${isRoot ? 'root-node' : ''}">${nodeHtml}${childrenHtml}</div>`;
-        }
-
-        let zoomLevel = 1;
+        let zoom = 1;
         let panX = 0;
         let panY = 0;
         let isDragging = false;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
+        let lastX = 0;
+        let lastY = 0;
+        let selectedPersonId = null;
 
-        function renderTree() {
-            const tree = buildTree();
-            const container = document.getElementById('orgTree');
+        // Initialize
+        function init() {
+            loadFromStorage();
+            if (state.people.length === 0) {
+                loadDefaultData();
+            }
+            render();
+            setupEventListeners();
+        }
+
+        function loadDefaultData() {
+            state.people = [
+                {
+                    id: '1',
+                    name: 'Alex Mercer',
+                    role: 'Chairman',
+                    domain: 'Board',
+                    reportsTo: '',
+                    type: 'chairman',
+                    accountabilities: 'Board oversight, Strategic direction, CEO succession',
+                    decisionRights: 'Final approval on major investments, Executive appointments'
+                },
+                {
+                    id: '2',
+                    name: 'Jordan Blake',
+                    role: 'CEO',
+                    domain: 'Executive',
+                    reportsTo: '1',
+                    type: 'ceo',
+                    accountabilities: 'Company performance, Culture, Strategy execution',
+                    decisionRights: 'Budget allocation over $1M, Strategic partnerships'
+                },
+                {
+                    id: '3',
+                    name: 'Taylor Reed',
+                    role: 'CFO/COO',
+                    domain: 'Finance & Operations',
+                    reportsTo: '2',
+                    type: 'cfo',
+                    accountabilities: 'Financial planning, Operational efficiency, Risk management',
+                    decisionRights: 'Budget approval under $500K, Vendor contracts'
+                },
+                {
+                    id: '4',
+                    name: 'Morgan Chase',
+                    role: 'Operations Manager',
+                    domain: 'Operations',
+                    reportsTo: '3',
+                    type: 'manager',
+                    accountabilities: 'Daily operations, Team management, Process improvement',
+                    decisionRights: 'Hiring decisions, Process changes, Expense approvals under $10K'
+                }
+            ];
+            saveToStorage();
+        }
+
+        // Storage
+        function saveToStorage() {
+            localStorage.setItem('orgChartData', JSON.stringify(state));
+        }
+
+        function loadFromStorage() {
+            const data = localStorage.getItem('orgChartData');
+            if (data) {
+                state = JSON.parse(data);
+                document.getElementById('companyName').textContent = state.companyName;
+            }
+        }
+
+        // Rendering
+        function render() {
+            const chart = document.getElementById('orgChart');
             
-            if (tree.length === 0) {
-                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3><p>Switch to Edit People to add your team</p></div>`;
+            if (state.people.length === 0) {
+                chart.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No people added yet</h3>
+                        <p>Click "Add Person" to start building your org chart</p>
+                        <button class="btn btn-primary" onclick="addNewPerson()">Add First Person</button>
+                    </div>
+                `;
                 return;
             }
+
+            // Find root nodes (people with no reportsTo)
+            const roots = state.people.filter(p => !p.reportsTo);
             
-            container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(renderTreeNode).join('') + '</div></div>';
-            applyTransform();
-            setupPanZoom();
+            if (roots.length === 0) {
+                // If no roots, use the first person as root
+                chart.innerHTML = renderTree(state.people[0]);
+            } else {
+                chart.innerHTML = `<div class="org-tree">${roots.map(root => renderTree(root)).join('')}</div>`;
+            }
+
+            // Apply transform
+            updateTransform();
         }
 
-        function applyTransform() {
-            const container = document.getElementById('treeContainer');
-            if (container) container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+        function renderTree(person) {
+            const children = state.people.filter(p => p.reportsTo === person.id);
+            const roleType = state.roleTypes.find(rt => rt.id === person.type) || state.roleTypes[0];
+            const isSelected = person.id === selectedPersonId;
+
+            let html = `
+                <div class="node-wrapper">
+                    <div class="person-card ${isSelected ? 'selected' : ''}" 
+                         style="border-color: ${roleType.color}"
+                         onclick="selectPerson('${person.id}')">
+                        <div class="card-header">
+                            <div class="person-name">${escapeHtml(person.name)}</div>
+                            <div class="person-role">${escapeHtml(person.role)}</div>
+                        </div>
+                        ${person.domain ? `<div class="meta-tag">${escapeHtml(person.domain)}</div>` : ''}
+                    </div>
+            `;
+
+            if (children.length > 0) {
+                const hasMultipleChildren = children.length > 1;
+                html += `<div class="parent-line"></div>`;
+                html += `<div class="children-container ${hasMultipleChildren ? '' : 'single-child'}">`;
+                
+                if (hasMultipleChildren) {
+                    // Calculate horizontal line position
+                    html += `<div class="children-horizontal-line" style="left: 50%; transform: translateX(-50%); width: ${(children.length - 1) * 260 + 40}px;"></div>`;
+                }
+                
+                children.forEach(child => {
+                    html += `<div class="child-wrapper">`;
+                    html += `<div class="child-line"></div>`;
+                    html += renderTree(child);
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            return html;
         }
 
-        function zoomIn() { zoomLevel = Math.min(zoomLevel * 1.2, 3); applyTransform(); }
-        function zoomOut() { zoomLevel = Math.max(zoomLevel / 1.2, 0.3); applyTransform(); }
-        function resetZoom() { zoomLevel = 1; panX = 0; panY = 0; applyTransform(); }
-
-        function setupPanZoom() {
-            const treeArea = document.getElementById('orgTree');
-            if (!treeArea) return;
-
-            treeArea.addEventListener('wheel', function(e) {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                zoomLevel = Math.max(0.3, Math.min(3, zoomLevel * delta));
-                applyTransform();
-            }, { passive: false });
-
-            treeArea.addEventListener('mousedown', function(e) {
-                if (e.target.closest('.node-card')) return; 
-                isDragging = true;
-                lastMouseX = e.clientX;
-                lastMouseY = e.clientY;
-                treeArea.style.cursor = 'grabbing';
-            });
-
-            document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
-                const deltaX = e.clientX - lastMouseX;
-                const deltaY = e.clientY - lastMouseY;
-                panX += deltaX;
-                panY += deltaY;
-                lastMouseX = e.clientX;
-                lastMouseY = e.clientY;
-                applyTransform();
-            });
-
-            document.addEventListener('mouseup', function() {
-                isDragging = false;
-                treeArea.style.cursor = 'grab';
-            });
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        function updateTypeSelect() {
-            const select = document.getElementById('type');
-            select.innerHTML = roleTypes.map(rt => `<option value="${rt.id}">${rt.name}</option>`).join('');
+        // Selection and Sidebar
+        function selectPerson(id) {
+            selectedPersonId = id;
+            render();
+            openSidebar(id);
         }
 
-        function updateReportsToOptions() {
-            const select = document.getElementById('reportsTo');
-            const currentId = editingId;
-            let html = '<option value="">None (Top Level)</option>';
-            people.forEach(p => {
-                if (p.id !== currentId && !isDescendant(currentId, p.id)) {
-                    html += `<option value="${p.id}">${p.name} - ${p.role}</option>`;
+        function openSidebar(personId = null) {
+            const sidebar = document.getElementById('sidebar');
+            const title = document.getElementById('sidebarTitle');
+            const form = document.getElementById('personForm');
+            const deleteBtn = document.getElementById('deleteBtn');
+
+            // Populate dropdowns
+            populateReportsToDropdown(personId);
+            populateTypeDropdown();
+
+            if (personId) {
+                const person = state.people.find(p => p.id === personId);
+                title.textContent = 'Edit Person';
+                document.getElementById('personId').value = person.id;
+                document.getElementById('personName').value = person.name;
+                document.getElementById('personRole').value = person.role;
+                document.getElementById('personDomain').value = person.domain || '';
+                document.getElementById('personReportsTo').value = person.reportsTo || '';
+                document.getElementById('personType').value = person.type;
+                document.getElementById('personAccountabilities').value = person.accountabilities || '';
+                document.getElementById('personDecisionRights').value = person.decisionRights || '';
+                deleteBtn.style.display = 'block';
+            } else {
+                title.textContent = 'Add Person';
+                form.reset();
+                document.getElementById('personId').value = '';
+                deleteBtn.style.display = 'none';
+            }
+
+            sidebar.classList.add('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            selectedPersonId = null;
+            render();
+        }
+
+        function populateReportsToDropdown(excludeId) {
+            const select = document.getElementById('personReportsTo');
+            select.innerHTML = '<option value="">None (Top Level)</option>';
+            
+            state.people.forEach(person => {
+                if (person.id !== excludeId) {
+                    select.innerHTML += `<option value="${person.id}">${escapeHtml(person.name)} - ${escapeHtml(person.role)}</option>`;
                 }
             });
-            select.innerHTML = html;
         }
 
-        function isDescendant(parentId, childId) {
-            if (!parentId) return false;
-            const children = people.filter(p => p.reportsTo === parentId);
-            for (const child of children) {
-                if (child.id === childId || isDescendant(child.id, childId)) return true;
+        function populateTypeDropdown() {
+            const select = document.getElementById('personType');
+            select.innerHTML = state.roleTypes.map(rt => 
+                `<option value="${rt.id}">${escapeHtml(rt.name)}</option>`
+            ).join('');
+        }
+
+        // CRUD Operations
+        function addNewPerson() {
+            selectedPersonId = null;
+            openSidebar();
+        }
+
+        function savePerson(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('personId').value;
+            const personData = {
+                id: id || Date.now().toString(),
+                name: document.getElementById('personName').value,
+                role: document.getElementById('personRole').value,
+                domain: document.getElementById('personDomain').value,
+                reportsTo: document.getElementById('personReportsTo').value,
+                type: document.getElementById('personType').value,
+                accountabilities: document.getElementById('personAccountabilities').value,
+                decisionRights: document.getElementById('personDecisionRights').value
+            };
+
+            if (id) {
+                const index = state.people.findIndex(p => p.id === id);
+                state.people[index] = personData;
+            } else {
+                state.people.push(personData);
             }
-            return false;
+
+            saveToStorage();
+            closeSidebar();
+            render();
         }
 
-        function renderRoleTypes() {
-            const container = document.getElementById('roleTypesList');
-            container.innerHTML = roleTypes.map((rt, idx) => `
+        function deletePerson() {
+            const id = document.getElementById('personId').value;
+            if (!id) return;
+
+            // Check if anyone reports to this person
+            const hasReports = state.people.some(p => p.reportsTo === id);
+            if (hasReports) {
+                alert('Cannot delete this person. Reassign their reports first.');
+                return;
+            }
+
+            if (confirm('Are you sure you want to delete this person?')) {
+                state.people = state.people.filter(p => p.id !== id);
+                saveToStorage();
+                closeSidebar();
+                render();
+            }
+        }
+
+        // Role Types Management
+        function openRoleTypesModal() {
+            const list = document.getElementById('roleTypeList');
+            list.innerHTML = state.roleTypes.map((rt, index) => `
                 <div class="role-type-item">
-                    <input type="color" value="${rt.color}" onchange="updateRoleTypeColor(${idx}, this.value)">
-                    <input type="text" value="${rt.name}" onchange="updateRoleTypeName(${idx}, this.value)" placeholder="Type name">
-                    <button class="icon-btn delete" onclick="removeRoleType(${idx})">✕</button>
+                    <input type="color" class="color-picker" value="${rt.color}" data-index="${index}">
+                    <input type="text" class="role-type-input" value="${escapeHtml(rt.name)}" data-index="${index}" placeholder="Role type name">
+                    <button class="role-delete" onclick="removeRoleType(${index})">×</button>
                 </div>
             `).join('');
-            updateTypeSelect();
+            
+            document.getElementById('roleTypesModal').classList.add('open');
+        }
+
+        function closeRoleTypesModal() {
+            document.getElementById('roleTypesModal').classList.remove('open');
         }
 
         function addRoleType() {
-            const newId = 'type_' + Date.now();
-            roleTypes.push({ id: newId, name: 'New Type', color: '#64748b' });
-            saveData();
-            renderRoleTypes();
+            const list = document.getElementById('roleTypeList');
+            const index = list.children.length;
+            const div = document.createElement('div');
+            div.className = 'role-type-item';
+            div.innerHTML = `
+                <input type="color" class="color-picker" value="#3b82f6" data-index="${index}">
+                <input type="text" class="role-type-input" value="" data-index="${index}" placeholder="Role type name">
+                <button class="role-delete" onclick="this.parentElement.remove()">×</button>
+            `;
+            list.appendChild(div);
         }
 
-        function updateRoleTypeColor(idx, color) { roleTypes[idx].color = color; saveData(); renderTree(); }
-        function updateRoleTypeName(idx, name) { roleTypes[idx].name = name; saveData(); renderTree(); renderLegend(); }
-
-        function removeRoleType(idx) {
-            if (roleTypes.length <= 1) { alert('You need at least one role type'); return; }
-            const removedType = roleTypes[idx];
-            roleTypes.splice(idx, 1);
-            people.forEach(p => { if (p.type === removedType.id) p.type = roleTypes[0].id; });
-            saveData(); renderRoleTypes(); renderList(); renderTree();
-        }
-
-        function renderList() {
-            const container = document.getElementById('personList');
-            if (people.length === 0) {
-                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3></div>`;
+        function removeRoleType(index) {
+            const rt = state.roleTypes[index];
+            const inUse = state.people.some(p => p.type === rt.id);
+            if (inUse) {
+                alert('Cannot delete this role type. It is assigned to existing people.');
                 return;
             }
-            container.innerHTML = people.map(p => {
-                const reportsTo = people.find(x => x.id === p.reportsTo);
-                const type = roleTypes.find(rt => rt.id === p.type);
-                return `
-                    <div class="person-item ${editingId === p.id ? 'selected' : ''}" onclick="editPerson(${p.id})">
-                        <div class="person-info">
-                            <h3>${p.name}</h3>
-                            <p>${p.role}${p.domain ? ` • ${p.domain}` : ''}${reportsTo ? ` → reports to ${reportsTo.name}` : ''}</p>
-                        </div>
-                        <div class="person-actions">
-                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${type?.color || '#3b82f6'};margin-right:8px;"></span>
-                            <button class="icon-btn" onclick="event.stopPropagation(); editPerson(${p.id})">✎</button>
-                            <button class="icon-btn delete" onclick="event.stopPropagation(); confirmDelete(${p.id})">✕</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            state.roleTypes.splice(index, 1);
+            openRoleTypesModal(); // Refresh
         }
 
-        document.getElementById('personForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const personData = {
-                id: editingId || Date.now(),
-                name: document.getElementById('name').value,
-                role: document.getElementById('role').value,
-                domain: document.getElementById('domain').value,
-                reportsTo: document.getElementById('reportsTo').value ? parseInt(document.getElementById('reportsTo').value) : null,
-                type: document.getElementById('type').value,
-                accountabilities: document.getElementById('accountabilities').value,
-                decisions: document.getElementById('decisions').value
-            };
-            if (editingId) {
-                const idx = people.findIndex(p => p.id === editingId);
-                people[idx] = personData;
-            } else {
-                people.push(personData);
-            }
-            saveData(); resetForm(); renderList(); updateReportsToOptions();
-        });
+        function saveRoleTypes() {
+            const items = document.querySelectorAll('.role-type-item');
+            const newRoleTypes = [];
+            
+            items.forEach((item, idx) => {
+                const color = item.querySelector('.color-picker').value;
+                const name = item.querySelector('.role-type-input').value.trim();
+                if (name) {
+                    // Preserve original IDs where possible
+                    const existing = state.roleTypes[idx];
+                    newRoleTypes.push({
+                        id: existing ? existing.id : 'rt_' + Date.now() + '_' + idx,
+                        name: name,
+                        color: color
+                    });
+                }
+            });
 
-        function editPerson(id) {
-            editingId = id;
-            const person = people.find(p => p.id === id);
-            document.getElementById('formTitle').textContent = 'Edit Person';
-            document.getElementById('personId').value = person.id;
-            document.getElementById('name').value = person.name;
-            document.getElementById('role').value = person.role;
-            document.getElementById('domain').value = person.domain || '';
-            document.getElementById('reportsTo').value = person.reportsTo || '';
-            document.getElementById('type').value = person.type || roleTypes[0].id;
-            document.getElementById('accountabilities').value = person.accountabilities || '';
-            document.getElementById('decisions').value = person.decisions || '';
-            document.getElementById('deleteBtn').style.display = 'block';
-            updateReportsToOptions(); renderList();
+            // Map old type IDs to new ones
+            const oldTypes = state.roleTypes;
+            state.roleTypes = newRoleTypes;
+
+            // Update people's types if their type was removed
+            state.people.forEach(person => {
+                const typeExists = newRoleTypes.some(rt => rt.id === person.type);
+                if (!typeExists && newRoleTypes.length > 0) {
+                    person.type = newRoleTypes[0].id;
+                }
+            });
+
+            saveToStorage();
+            closeRoleTypesModal();
+            render();
         }
 
-        function selectPerson(id) { showView('edit'); editPerson(id); }
-
-        function resetForm() {
-            editingId = null;
-            document.getElementById('formTitle').textContent = 'Add Person';
-            document.getElementById('personForm').reset();
-            document.getElementById('deleteBtn').style.display = 'none';
-            updateReportsToOptions(); renderList();
-        }
-
-        function confirmDelete(id) {
-            if (confirm('Delete this person? Any people reporting to them will become top-level.')) {
-                people.forEach(p => { if (p.reportsTo === id) p.reportsTo = null; });
-                people = people.filter(p => p.id !== id);
-                saveData(); resetForm(); renderList();
-            }
-        }
-
-        function deletePerson() { if (editingId) confirmDelete(editingId); }
-
+        // Export/Import
         function exportData() {
-            const data = { version: '1.0', exportedAt: new Date().toISOString(), companyName: companyName, roleTypes: roleTypes, people: people };
-            const json = JSON.stringify(data, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const date = new Date().toISOString().split('T')[0];
-            const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${safeName}_org_chart_${date}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            a.download = `${state.companyName.replace(/\s+/g, '_')}_org_chart.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
-        function importData(input) {
-            const file = input.files[0];
-            if (!file) return;
+        function importData(file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (!data.people) throw new Error('Invalid format');
-                    if (people.length > 0 && !confirm('Replace current data?')) return;
-                    companyName = data.companyName || 'Organization';
-                    roleTypes = data.roleTypes || defaultRoleTypes;
-                    people = data.people;
-                    saveData(); init();
-                } catch (err) { alert('Error: ' + err.message); }
-                input.value = '';
+                    if (data.people && data.roleTypes) {
+                        state = data;
+                        document.getElementById('companyName').textContent = state.companyName;
+                        saveToStorage();
+                        render();
+                        alert('Organization chart imported successfully!');
+                    } else {
+                        alert('Invalid file format');
+                    }
+                } catch (err) {
+                    alert('Error reading file');
+                }
             };
             reader.readAsText(file);
         }
 
+        // Zoom and Pan
+        function updateTransform() {
+            const content = document.getElementById('chartContent');
+            content.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+            document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+        }
+
+        function zoomIn() {
+            zoom = Math.min(zoom * 1.2, 3);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            zoom = Math.max(zoom / 1.2, 0.3);
+            updateTransform();
+        }
+
+        function resetZoom() {
+            zoom = 1;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+        }
+
+        function setupEventListeners() {
+            const container = document.getElementById('chartContainer');
+
+            // Mouse wheel zoom
+            container.addEventListener('wheel', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0) {
+                        zoomIn();
+                    } else {
+                        zoomOut();
+                    }
+                }
+            }, { passive: false });
+
+            // Pan
+            container.addEventListener('mousedown', (e) => {
+                if (e.target === container || e.target.id === 'chartContent' || e.target.id === 'orgChart') {
+                    isDragging = true;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                    container.style.cursor = 'grabbing';
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const dx = e.clientX - lastX;
+                    const dy = e.clientY - lastY;
+                    panX += dx;
+                    panY += dy;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                    updateTransform();
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                container.style.cursor = 'grab';
+            });
+
+            // Import file
+            document.getElementById('importFile').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    importData(e.target.files[0]);
+                    e.target.value = '';
+                }
+            });
+
+            // Company name edit
+            document.getElementById('companyName').addEventListener('blur', (e) => {
+                state.companyName = e.target.textContent;
+                saveToStorage();
+            });
+
+            document.getElementById('companyName').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.blur();
+                }
+            });
+        }
+
+        // Start
         init();
     </script>
 </body>
