@@ -221,8 +221,8 @@
             position: relative;
         }
 
-        /* Vertical line from parent down to children level */
-        .children::before {
+        /* Only show vertical line from parent when there are actual children */
+        .children:has(> .child-wrapper)::before {
             content: '';
             position: absolute;
             top: 0;
@@ -241,7 +241,7 @@
             position: relative;
         }
 
-        /* Vertical line up from child to horizontal connector */
+        /* Vertical line up from child - only show when there are siblings */
         .child-wrapper::before {
             content: '';
             position: absolute;
@@ -253,12 +253,8 @@
             background: #475569;
         }
 
-        /* Horizontal connector bar - only on the container, not each child */
-        .children > .child-wrapper:not(:only-child) {
-            position: relative;
-        }
-
-        .children > .child-wrapper:not(:only-child)::after {
+        /* Horizontal connector bar - only when there are multiple children */
+        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper::after {
             content: '';
             position: absolute;
             top: -50px;
@@ -267,26 +263,21 @@
         }
 
         /* First child: horizontal line extends from center to right edge */
-        .children > .child-wrapper:first-child:not(:only-child)::after {
+        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper:first-child::after {
             left: 50%;
             right: 0;
         }
 
         /* Last child: horizontal line extends from left edge to center */
-        .children > .child-wrapper:last-child:not(:only-child)::after {
+        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper:last-child::after {
             left: 0;
             right: 50%;
         }
 
         /* Middle children: full width horizontal line */
-        .children > .child-wrapper:not(:first-child):not(:last-child):not(:only-child)::after {
+        .children:has(> .child-wrapper:nth-child(2)) > .child-wrapper:not(:first-child):not(:last-child)::after {
             left: 0;
             right: 0;
-        }
-
-        /* Single child: no horizontal line, just vertical */
-        .child-wrapper:only-child::after {
-            display: none !important;
         }
 
         /* Edit View */
