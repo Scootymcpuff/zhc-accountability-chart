@@ -6,11 +6,12 @@ A simple, no-build web app for managing organizational structure. Editable compa
 
 ## Features
 
+- **Save/Load to File** — Export your chart as JSON, share it, load it anywhere
 - **Editable Company Name** — Click the header title to change it
 - **Custom Role Types** — Add, edit, remove role types with custom colors
 - **Visual Org Chart** — Tree diagram with proper connecting lines
 - **Add/Edit People** — Form for managing names, roles, domains, reporting
-- **Local Storage** — Everything persists in your browser
+- **Local Storage** — Auto-saves to your browser
 - **No Server Required** — Just open the HTML file
 
 ## Quick Start
@@ -44,22 +45,30 @@ In the Edit People view, scroll down to "Role Types":
 
 ## Data Storage
 
-All data is stored in your browser's localStorage:
-- Company name
-- Role types with colors
-- People and relationships
+### File Save/Load (Recommended)
+Use the **"Save to File"** and **"Load from File"** buttons in the header:
+- Saves everything (company name, role types, people) to a JSON file
+- Filename includes company name and date
+- Share the file with others
+- Load it on any computer/browser
 
-To backup:
+### Browser Storage
+Data also auto-saves to your browser's localStorage. This means:
+- If you close and reopen the page, data is still there
+- Data is tied to this browser on this device
+- Clearing browser data will erase it
+
+### Manual Backup (Advanced)
 ```javascript
 // In browser console, run:
-copy(JSON.stringify({
-    company: localStorage.getItem('org_chart_company_name'),
-    types: localStorage.getItem('org_chart_role_types'),
-    people: localStorage.getItem('org_chart_people')
-}))
+copy(localStorage.getItem('org_chart_people'))
 ```
 
 To restore:
+```javascript
+localStorage.setItem('org_chart_people', 'PASTE_JSON_HERE')
+location.reload()
+```
 ```javascript
 const data = JSON.parse('PASTE_BACKUP_HERE');
 localStorage.setItem('org_chart_company_name', data.company);
