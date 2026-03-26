@@ -145,7 +145,19 @@
             display: flex;
             justify-content: center;
             padding: 40px;
-            overflow-x: auto;
+            overflow: hidden;
+            position: relative;
+            height: calc(100vh - 200px);
+            cursor: grab;
+        }
+
+        .org-tree:active {
+            cursor: grabbing;
+        }
+
+        .tree-container {
+            transform-origin: top center;
+            transition: transform 0.1s ease-out;
         }
 
         .tree {
@@ -205,11 +217,11 @@
         .children {
             display: flex;
             justify-content: center;
-            padding-top: 40px;
+            padding-top: 50px;
             position: relative;
         }
 
-        /* Vertical line from parent to horizontal connector */
+        /* Vertical line from parent down to children level */
         .children::before {
             content: '';
             position: absolute;
@@ -217,7 +229,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
-            height: 40px;
+            height: 50px;
             background: #475569;
         }
 
@@ -225,46 +237,56 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 15px;
             position: relative;
         }
 
-        /* Horizontal connector line for each child */
+        /* Vertical line up from child to horizontal connector */
         .child-wrapper::before {
             content: '';
             position: absolute;
-            top: -40px;
+            top: -50px;
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
-            height: 40px;
+            height: 50px;
             background: #475569;
         }
 
-        /* Horizontal bar connecting siblings */
-        .child-wrapper::after {
+        /* Horizontal connector bar - only on the container, not each child */
+        .children > .child-wrapper:not(:only-child) {
+            position: relative;
+        }
+
+        .children > .child-wrapper:not(:only-child)::after {
             content: '';
             position: absolute;
-            top: -40px;
-            left: 0;
-            right: 0;
+            top: -50px;
             height: 2px;
             background: #475569;
         }
 
-        /* First child - only right half of horizontal bar */
-        .child-wrapper:first-child::after {
+        /* First child: horizontal line extends from center to right edge */
+        .children > .child-wrapper:first-child:not(:only-child)::after {
             left: 50%;
+            right: 0;
         }
 
-        /* Last child - only left half of horizontal bar */
-        .child-wrapper:last-child::after {
+        /* Last child: horizontal line extends from left edge to center */
+        .children > .child-wrapper:last-child:not(:only-child)::after {
+            left: 0;
             right: 50%;
         }
 
-        /* Single child - no horizontal bar needed */
+        /* Middle children: full width horizontal line */
+        .children > .child-wrapper:not(:first-child):not(:last-child):not(:only-child)::after {
+            left: 0;
+            right: 0;
+        }
+
+        /* Single child: no horizontal line, just vertical */
         .child-wrapper:only-child::after {
-            display: none;
+            display: none !important;
         }
 
         /* Edit View */
@@ -476,6 +498,36 @@
             color: #94a3b8;
         }
 
+        /* Zoom Controls */
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
         /* Legend */
         .legend {
             display: flex;
@@ -643,6 +695,30 @@
                 position: static;
             }
 
+            .header-actions {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .file-actions {
+                order: 2;
+                width: 100%;
+            }
+
+            .org-tree {
+                height: calc(100vh - 250px);
+            }
+
+            .zoom-controls {
+                top: 10px;
+                right: 10px;
+            }
+
+            .zoom-btn {
+                width: 36px;
+                height: 36px;
+            }
+
             .children {
                 flex-direction: column;
                 align-items: center;
@@ -699,6 +775,11 @@
         <div id="chartView" class="chart-view active">
             <div class="legend" id="legend">
                 <!-- Legend items rendered here -->
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
             </div>
             <div id="orgTree" class="org-tree">
                 <!-- Tree will be rendered here -->
@@ -888,6 +969,14 @@
             return html;
         }
 
+        // Zoom state
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
         // Render org tree
         function renderTree() {
             const tree = buildTree();
@@ -903,7 +992,76 @@
                 return;
             }
             
-            container.innerHTML = '<div class="tree">' + tree.map(renderTreeNode).join('') + '</div>';
+            container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(renderTreeNode).join('') + '</div></div>';
+            applyTransform();
+            setupPanZoom();
+        }
+
+        // Apply zoom and pan transform
+        function applyTransform() {
+            const container = document.getElementById('treeContainer');
+            if (container) {
+                container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+            }
+        }
+
+        // Zoom in
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel * 1.2, 3);
+            applyTransform();
+        }
+
+        // Zoom out
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel / 1.2, 0.3);
+            applyTransform();
+        }
+
+        // Reset zoom
+        function resetZoom() {
+            zoomLevel = 1;
+            panX = 0;
+            panY = 0;
+            applyTransform();
+        }
+
+        // Setup pan/zoom interactions
+        function setupPanZoom() {
+            const treeArea = document.getElementById('orgTree');
+            if (!treeArea) return;
+
+            // Mouse wheel zoom
+            treeArea.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                zoomLevel = Math.max(0.3, Math.min(3, zoomLevel * delta));
+                applyTransform();
+            }, { passive: false });
+
+            // Mouse drag to pan
+            treeArea.addEventListener('mousedown', function(e) {
+                if (e.target.closest('.node-card')) return; // Don't drag when clicking nodes
+                isDragging = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                treeArea.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                applyTransform();
+            });
+
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                treeArea.style.cursor = 'grab';
+            });
         }
 
         // Update type select dropdown
