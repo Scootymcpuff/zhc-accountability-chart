@@ -170,6 +170,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
 
         .node-content {
@@ -214,95 +215,78 @@
             border-top: 1px solid #334155;
         }
 
-        /* Tree structure - using explicit line elements with proper positioning */
-
-        .tree-node {
-            position: relative;
-        }
+        /* --- Perfect Connection Lines (Using Pseudo-Elements) --- */
 
         .children {
             display: flex;
             justify-content: center;
-            padding-top: 50px;
+            padding-top: 40px; /* Gap between parent and children */
             position: relative;
+        }
+
+        /* 1. Vertical line going DOWN from parent. It stops exactly halfway (20px). */
+        .children::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px; 
+            background: #475569;
         }
 
         .child-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 15px;
+            padding: 0 15px; /* Spacing between siblings */
             position: relative;
         }
 
-        /* Tree lines using explicit div elements */
-
-        .node-content {
-            position: relative;
-        }
-
-        /* Vertical line extending DOWN from parent */
-        /* This goes from bottom of parent card down to the horizontal bar level */
-        .vertical-line-down {
+        /* 2. Vertical line going UP from child. It connects child to horizontal line. */
+        .child-wrapper::before {
+            content: '';
             position: absolute;
-            bottom: -50px;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
-            height: 50px;
-            background: #475569;
-            z-index: 1;
-        }
-
-        /* Lines container sits at the top of child-wrapper (at the horizontal bar level) */
-        .lines-container {
-            position: absolute;
-            top: -50px;
-            left: 0;
-            right: 0;
-            height: 2px; /* Just the horizontal bar height */
-        }
-
-        /* Vertical line extending UP from child */
-        /* This goes from horizontal bar level UP to meet the parent's vertical-line-down */
-        .vertical-line-up {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 50px;
+            height: 20px;
             background: #475569;
         }
 
-        /* Horizontal connector between siblings */
-        .horizontal-line {
+        /* 3. Horizontal connection lines between siblings */
+        .child-wrapper::after {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: -20px;
             height: 2px;
             background: #475569;
         }
 
-        /* First child: horizontal line only on right side */
-        .child-wrapper:first-child .horizontal-line {
+        /* Logic to hide/show horizontal lines depending on if it's an only child, first, or last */
+        .child-wrapper:only-child::after {
+            display: none;
+        }
+
+        .child-wrapper:first-child:not(:only-child)::after {
             left: 50%;
             right: 0;
         }
 
-        /* Last child: horizontal line only on left side */
-        .child-wrapper:last-child .horizontal-line {
+        .child-wrapper:last-child:not(:only-child)::after {
             left: 0;
             right: 50%;
         }
 
-        /* Single child: no horizontal line needed */
-        .child-wrapper:only-child .horizontal-line {
-            display: none;
+        .child-wrapper:not(:first-child):not(:last-child)::after {
+            left: 0;
+            right: 0;
         }
 
-        /* Edit View */
+        /* --- End Lines --- */
+
         .edit-view {
             display: none;
         }
@@ -419,7 +403,6 @@
             flex: 1;
         }
 
-        /* List Panel */
         .list-panel {
             background: #1e293b;
             border-radius: 12px;
@@ -511,7 +494,6 @@
             color: #94a3b8;
         }
 
-        /* Zoom Controls */
         .zoom-controls {
             position: fixed;
             bottom: 20px;
@@ -541,7 +523,6 @@
             border-color: #475569;
         }
 
-        /* Legend */
         .legend {
             display: flex;
             gap: 20px;
@@ -564,7 +545,6 @@
             border-radius: 3px;
         }
 
-        /* Role Types Management */
         .role-types-section {
             margin-top: 24px;
             padding-top: 24px;
@@ -625,80 +605,6 @@
             color: #3b82f6;
         }
 
-        /* Settings Panel */
-        .settings-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #3b82f6;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            transition: all 0.2s;
-        }
-
-        .settings-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #1e293b;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid #334155;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-            color: #f8fafc;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: #64748b;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .close-modal:hover {
-            color: #e2e8f0;
-        }
-
         @media (max-width: 900px) {
             .edit-layout {
                 grid-template-columns: 1fr;
@@ -742,6 +648,7 @@
                 padding: 20px 0;
             }
 
+            /* Hide all lines on mobile layout */
             .child-wrapper::before,
             .children::before,
             .child-wrapper::after {
@@ -784,22 +691,16 @@
     </div>
 
     <div class="container">
-        <!-- Chart View -->
         <div id="chartView" class="chart-view active">
-            <div class="legend" id="legend">
-                <!-- Legend items rendered here -->
-            </div>
+            <div class="legend" id="legend"></div>
             <div class="zoom-controls">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
                 <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
                 <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
             </div>
-            <div id="orgTree" class="org-tree">
-                <!-- Tree will be rendered here -->
-            </div>
+            <div id="orgTree" class="org-tree"></div>
         </div>
 
-        <!-- Edit View -->
         <div id="editView" class="edit-view">
             <div class="edit-layout">
                 <div class="form-panel">
@@ -826,9 +727,7 @@
                         </div>
                         <div class="form-group">
                             <label>Type</label>
-                            <select id="type">
-                                <!-- Options populated dynamically -->
-                            </select>
+                            <select id="type"></select>
                         </div>
                         <div class="form-group">
                             <label>Key Accountabilities</label>
@@ -845,32 +744,26 @@
 
                     <div class="role-types-section">
                         <h3>Role Types</h3>
-                        <div id="roleTypesList">
-                            <!-- Role types rendered here -->
-                        </div>
+                        <div id="roleTypesList"></div>
                         <button class="add-role-btn" onclick="addRoleType()">+ Add Role Type</button>
                     </div>
                 </div>
 
                 <div class="list-panel">
                     <h2>People</h2>
-                    <div id="personList" class="person-list">
-                        <!-- List will be rendered here -->
-                    </div>
+                    <div id="personList" class="person-list"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Default role types with colors
         const defaultRoleTypes = [
             { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
             { id: 'ai-agent', name: 'AI Agent', color: '#10b981' },
             { id: 'human', name: 'Human Team', color: '#3b82f6' }
         ];
 
-        // Data storage
         let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
         let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
         let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
@@ -882,14 +775,12 @@
 
         let editingId = null;
 
-        // Save to localStorage
         function saveData() {
             localStorage.setItem('org_chart_company_name', companyName);
             localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
             localStorage.setItem('org_chart_people', JSON.stringify(people));
         }
 
-        // Initialize
         function init() {
             document.getElementById('companyName').value = companyName;
             renderRoleTypes();
@@ -897,13 +788,11 @@
             showView('chart');
         }
 
-        // Company name change
         document.getElementById('companyName').addEventListener('change', function() {
             companyName = this.value;
             saveData();
         });
 
-        // Show different views
         function showView(view) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.chart-view, .edit-view').forEach(v => v.classList.remove('active'));
@@ -922,7 +811,6 @@
             }
         }
 
-        // Render legend
         function renderLegend() {
             const container = document.getElementById('legend');
             container.innerHTML = roleTypes.map(rt => `
@@ -933,39 +821,30 @@
             `).join('');
         }
 
-        // Build tree structure
         function buildTree() {
             const root = people.filter(p => !p.reportsTo);
             
             function addChildren(parent) {
                 const children = people.filter(p => p.reportsTo === parent.id);
-                return {
-                    ...parent,
-                    children: children.map(addChildren)
-                };
+                return { ...parent, children: children.map(addChildren) };
             }
             
             return root.map(addChildren);
         }
 
-        // Get color for person type
         function getTypeColor(typeId) {
             const type = roleTypes.find(rt => rt.id === typeId);
             return type ? type.color : '#3b82f6';
         }
 
-        // Render tree recursively
-        // level parameter: 0 for root, 1 for children, 2 for grandchildren, etc.
+        // --- Dramatically Simplified JS function for rendering the tree ---
         function renderTreeNode(node, level = 0) {
             const hasChildren = node.children && node.children.length > 0;
-            const multipleChildren = hasChildren && node.children.length > 1;
             const nodeColor = getTypeColor(node.type);
             const isRoot = level === 0;
             
-            // Build the node card with line extending down to children
             let nodeHtml = `
                 <div class="node-content">
-                    ${hasChildren ? '<div class="vertical-line-down"></div>' : ''}
                     <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
                         <div class="node-name">${node.name}</div>
                         <div class="node-role">${node.role}</div>
@@ -974,45 +853,21 @@
                 </div>
             `;
             
-            // Build children if any
             let childrenHtml = '';
             if (hasChildren) {
                 childrenHtml += `<div class="children">`;
-                node.children.forEach((child, index) => {
-                    const childLevel = level + 1;
-                    const isFirstChild = index === 0;
-                    const isLastChild = index === node.children.length - 1;
-                    
-                    // Each child wrapper contains:
-                    // 1. A vertical line going UP (except for root's immediate children)
-                    // 2. A horizontal line if there are multiple children
-                    childrenHtml += `<div class="child-wrapper">`;
-                    
-                    // Lines container at the top of child-wrapper
-                    childrenHtml += `<div class="lines-container">`;
-                    
-                    // Vertical line up (hidden for root's children to prevent dangling line)
-                    if (!isRoot) {
-                        childrenHtml += '<div class="vertical-line-up"></div>';
-                    }
-                    
-                    // Horizontal line for connecting siblings
-                    if (multipleChildren) {
-                        childrenHtml += '<div class="horizontal-line"></div>';
-                    }
-                    
-                    childrenHtml += '</div>'; // end lines-container
-                    
-                    childrenHtml += renderTreeNode(child, childLevel);
-                    childrenHtml += '</div>';
+                node.children.forEach((child) => {
+                    childrenHtml += `
+                        <div class="child-wrapper">
+                            ${renderTreeNode(child, level + 1)}
+                        </div>`;
                 });
-                childrenHtml += '</div>';
+                childrenHtml += `</div>`;
             }
             
             return `<div class="tree-node ${isRoot ? 'root-node' : ''}">${nodeHtml}${childrenHtml}</div>`;
         }
 
-        // Zoom state
         let zoomLevel = 1;
         let panX = 0;
         let panY = 0;
@@ -1020,18 +875,12 @@
         let lastMouseX = 0;
         let lastMouseY = 0;
 
-        // Render org tree
         function renderTree() {
             const tree = buildTree();
             const container = document.getElementById('orgTree');
             
             if (tree.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No people added yet</h3>
-                        <p>Switch to Edit People to add your team</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3><p>Switch to Edit People to add your team</p></div>`;
                 return;
             }
             
@@ -1040,40 +889,19 @@
             setupPanZoom();
         }
 
-        // Apply zoom and pan transform
         function applyTransform() {
             const container = document.getElementById('treeContainer');
-            if (container) {
-                container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
-            }
+            if (container) container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
         }
 
-        // Zoom in
-        function zoomIn() {
-            zoomLevel = Math.min(zoomLevel * 1.2, 3);
-            applyTransform();
-        }
+        function zoomIn() { zoomLevel = Math.min(zoomLevel * 1.2, 3); applyTransform(); }
+        function zoomOut() { zoomLevel = Math.max(zoomLevel / 1.2, 0.3); applyTransform(); }
+        function resetZoom() { zoomLevel = 1; panX = 0; panY = 0; applyTransform(); }
 
-        // Zoom out
-        function zoomOut() {
-            zoomLevel = Math.max(zoomLevel / 1.2, 0.3);
-            applyTransform();
-        }
-
-        // Reset zoom
-        function resetZoom() {
-            zoomLevel = 1;
-            panX = 0;
-            panY = 0;
-            applyTransform();
-        }
-
-        // Setup pan/zoom interactions
         function setupPanZoom() {
             const treeArea = document.getElementById('orgTree');
             if (!treeArea) return;
 
-            // Mouse wheel zoom
             treeArea.addEventListener('wheel', function(e) {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -1081,9 +909,8 @@
                 applyTransform();
             }, { passive: false });
 
-            // Mouse drag to pan
             treeArea.addEventListener('mousedown', function(e) {
-                if (e.target.closest('.node-card')) return; // Don't drag when clicking nodes
+                if (e.target.closest('.node-card')) return; 
                 isDragging = true;
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
@@ -1107,19 +934,14 @@
             });
         }
 
-        // Update type select dropdown
         function updateTypeSelect() {
             const select = document.getElementById('type');
-            select.innerHTML = roleTypes.map(rt => 
-                `<option value="${rt.id}">${rt.name}</option>`
-            ).join('');
+            select.innerHTML = roleTypes.map(rt => `<option value="${rt.id}">${rt.name}</option>`).join('');
         }
 
-        // Update reports-to dropdown
         function updateReportsToOptions() {
             const select = document.getElementById('reportsTo');
             const currentId = editingId;
-            
             let html = '<option value="">None (Top Level)</option>';
             people.forEach(p => {
                 if (p.id !== currentId && !isDescendant(currentId, p.id)) {
@@ -1129,18 +951,15 @@
             select.innerHTML = html;
         }
 
-        // Check if person is descendant of another
         function isDescendant(parentId, childId) {
             if (!parentId) return false;
             const children = people.filter(p => p.reportsTo === parentId);
             for (const child of children) {
-                if (child.id === childId) return true;
-                if (isDescendant(child.id, childId)) return true;
+                if (child.id === childId || isDescendant(child.id, childId)) return true;
             }
             return false;
         }
 
-        // Render role types in settings
         function renderRoleTypes() {
             const container = document.getElementById('roleTypesList');
             container.innerHTML = roleTypes.map((rt, idx) => `
@@ -1153,7 +972,6 @@
             updateTypeSelect();
         }
 
-        // Add new role type
         function addRoleType() {
             const newId = 'type_' + Date.now();
             roleTypes.push({ id: newId, name: 'New Type', color: '#64748b' });
@@ -1161,57 +979,23 @@
             renderRoleTypes();
         }
 
-        // Update role type color
-        function updateRoleTypeColor(idx, color) {
-            roleTypes[idx].color = color;
-            saveData();
-            renderTree();
-        }
+        function updateRoleTypeColor(idx, color) { roleTypes[idx].color = color; saveData(); renderTree(); }
+        function updateRoleTypeName(idx, name) { roleTypes[idx].name = name; saveData(); renderTree(); renderLegend(); }
 
-        // Update role type name
-        function updateRoleTypeName(idx, name) {
-            roleTypes[idx].name = name;
-            saveData();
-            renderTree();
-            renderLegend();
-        }
-
-        // Remove role type
         function removeRoleType(idx) {
-            if (roleTypes.length <= 1) {
-                alert('You need at least one role type');
-                return;
-            }
+            if (roleTypes.length <= 1) { alert('You need at least one role type'); return; }
             const removedType = roleTypes[idx];
             roleTypes.splice(idx, 1);
-            
-            // Update people with this type to the first available type
-            people.forEach(p => {
-                if (p.type === removedType.id) {
-                    p.type = roleTypes[0].id;
-                }
-            });
-            
-            saveData();
-            renderRoleTypes();
-            renderList();
-            renderTree();
+            people.forEach(p => { if (p.type === removedType.id) p.type = roleTypes[0].id; });
+            saveData(); renderRoleTypes(); renderList(); renderTree();
         }
 
-        // Render person list
         function renderList() {
             const container = document.getElementById('personList');
-            
             if (people.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No people added yet</h3>
-                        <p>Use the form to add your first person</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3></div>`;
                 return;
             }
-            
             container.innerHTML = people.map(p => {
                 const reportsTo = people.find(x => x.id === p.reportsTo);
                 const type = roleTypes.find(rt => rt.id === p.type);
@@ -1231,10 +1015,8 @@
             }).join('');
         }
 
-        // Form submission
         document.getElementById('personForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const personData = {
                 id: editingId || Date.now(),
                 name: document.getElementById('name').value,
@@ -1245,25 +1027,18 @@
                 accountabilities: document.getElementById('accountabilities').value,
                 decisions: document.getElementById('decisions').value
             };
-            
             if (editingId) {
                 const idx = people.findIndex(p => p.id === editingId);
                 people[idx] = personData;
             } else {
                 people.push(personData);
             }
-            
-            saveData();
-            resetForm();
-            renderList();
-            updateReportsToOptions();
+            saveData(); resetForm(); renderList(); updateReportsToOptions();
         });
 
-        // Edit person
         function editPerson(id) {
             editingId = id;
             const person = people.find(p => p.id === id);
-            
             document.getElementById('formTitle').textContent = 'Edit Person';
             document.getElementById('personId').value = person.id;
             document.getElementById('name').value = person.name;
@@ -1274,136 +1049,61 @@
             document.getElementById('accountabilities').value = person.accountabilities || '';
             document.getElementById('decisions').value = person.decisions || '';
             document.getElementById('deleteBtn').style.display = 'block';
-            
-            updateReportsToOptions();
-            renderList();
+            updateReportsToOptions(); renderList();
         }
 
-        // Select from chart
-        function selectPerson(id) {
-            showView('edit');
-            editPerson(id);
-        }
+        function selectPerson(id) { showView('edit'); editPerson(id); }
 
-        // Reset form
         function resetForm() {
             editingId = null;
             document.getElementById('formTitle').textContent = 'Add Person';
             document.getElementById('personForm').reset();
             document.getElementById('deleteBtn').style.display = 'none';
-            updateReportsToOptions();
-            renderList();
+            updateReportsToOptions(); renderList();
         }
 
-        // Confirm delete
         function confirmDelete(id) {
             if (confirm('Delete this person? Any people reporting to them will become top-level.')) {
-                // Reassign children to top level
-                people.forEach(p => {
-                    if (p.reportsTo === id) {
-                        p.reportsTo = null;
-                    }
-                });
-                
+                people.forEach(p => { if (p.reportsTo === id) p.reportsTo = null; });
                 people = people.filter(p => p.id !== id);
-                saveData();
-                resetForm();
-                renderList();
+                saveData(); resetForm(); renderList();
             }
         }
 
-        // Delete person
-        function deletePerson() {
-            if (editingId) {
-                confirmDelete(editingId);
-            }
-        }
+        function deletePerson() { if (editingId) confirmDelete(editingId); }
 
-        // Export data to JSON file
         function exportData() {
-            const data = {
-                version: '1.0',
-                exportedAt: new Date().toISOString(),
-                companyName: companyName,
-                roleTypes: roleTypes,
-                people: people
-            };
-            
+            const data = { version: '1.0', exportedAt: new Date().toISOString(), companyName: companyName, roleTypes: roleTypes, people: people };
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
-            // Create filename with company name and date
             const date = new Date().toISOString().split('T')[0];
             const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const filename = `${safeName}_org_chart_${date}.json`;
-            
-            // Trigger download
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            a.download = `${safeName}_org_chart_${date}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
-        // Import data from JSON file
         function importData(input) {
             const file = input.files[0];
             if (!file) return;
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    
-                    // Validate data structure
-                    if (!data.people || !Array.isArray(data.people)) {
-                        throw new Error('Invalid file format: missing people data');
-                    }
-                    
-                    // Confirm if there's existing data
-                    if (people.length > 0) {
-                        if (!confirm('This will replace all current data. Are you sure?')) {
-                            input.value = '';
-                            return;
-                        }
-                    }
-                    
-                    // Load the data
+                    if (!data.people) throw new Error('Invalid format');
+                    if (people.length > 0 && !confirm('Replace current data?')) return;
                     companyName = data.companyName || 'Organization';
                     roleTypes = data.roleTypes || defaultRoleTypes;
                     people = data.people;
-                    
-                    // Save to localStorage
-                    saveData();
-                    
-                    // Update UI
-                    document.getElementById('companyName').value = companyName;
-                    renderRoleTypes();
-                    updateTypeSelect();
-                    
-                    // Refresh current view
-                    const chartView = document.getElementById('chartView');
-                    if (chartView.classList.contains('active')) {
-                        renderTree();
-                        renderLegend();
-                    } else {
-                        renderList();
-                        resetForm();
-                    }
-                    
-                    alert('Data loaded successfully!');
-                } catch (err) {
-                    alert('Error loading file: ' + err.message);
-                }
+                    saveData(); init();
+                } catch (err) { alert('Error: ' + err.message); }
                 input.value = '';
             };
             reader.readAsText(file);
         }
 
-        // Initialize on load
         init();
     </script>
 </body>
