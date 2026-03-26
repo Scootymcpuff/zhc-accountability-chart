@@ -214,26 +214,10 @@
             border-top: 1px solid #334155;
         }
 
-        /* Tree structure with SVG-like precision using explicit line elements */
+        /* Tree structure with lines drawn from parent, not to children */
 
         .tree-node {
             position: relative;
-        }
-
-        /* Vertical connector line drawn as a real element */
-        .connector-line {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 50px;
-            background: #475569;
-            top: -50px;
-        }
-
-        /* Root nodes should NOT have connector lines above them */
-        .tree-node.root-node > .connector-line {
-            display: none !important;
         }
 
         .children {
@@ -243,16 +227,22 @@
             position: relative;
         }
 
-        /* The vertical line from parent down to the horizontal bar */
-        .children.has-children::before {
+        /* Vertical line extending DOWN from parent node when it has children */
+        .tree-node:has(> .children.has-children) > .node-content::after {
             content: '';
             position: absolute;
-            top: 0;
+            bottom: -52px; /* Extend below the card, into the padding area */
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
             height: 50px;
             background: #475569;
+            z-index: 1;
+        }
+
+        /* Root nodes should NOT have any line above them */
+        .tree-node.root-node > .node-content::before {
+            display: none !important;
         }
 
         .child-wrapper {
@@ -263,8 +253,8 @@
             position: relative;
         }
 
-        /* Vertical line from child UP to the horizontal bar or parent */
-        .child-wrapper::after {
+        /* Vertical line going UP from each child to meet the horizontal bar */
+        .child-wrapper::before {
             content: '';
             position: absolute;
             top: -50px;
@@ -276,7 +266,19 @@
         }
 
         /* Horizontal connector between siblings - only when 2+ children */
-        .children.multiple-children > .child-wrapper::before {
+        .children.multiple-children::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 2px;
+            background: transparent; /* We draw segments on children instead */
+        }
+
+        /* Horizontal line segments on each child wrapper for multiple children */
+        .children.multiple-children > .child-wrapper::after {
             content: '';
             position: absolute;
             top: -50px;
@@ -284,20 +286,20 @@
             background: #475569;
         }
 
-        /* First child: horizontal line from center to right */
-        .children.multiple-children > .child-wrapper:first-child::before {
+        /* First child: from center to right */
+        .children.multiple-children > .child-wrapper:first-child::after {
             left: 50%;
             right: 0;
         }
 
-        /* Last child: horizontal line from left to center */
-        .children.multiple-children > .child-wrapper:last-child::before {
+        /* Last child: from left to center */
+        .children.multiple-children > .child-wrapper:last-child::after {
             left: 0;
             right: 50%;
         }
 
-        /* Middle children: full width horizontal line */
-        .children.multiple-children > .child-wrapper:not(:first-child):not(:last-child)::before {
+        /* Middle children: full width */
+        .children.multiple-children > .child-wrapper:not(:first-child):not(:last-child)::after {
             left: 0;
             right: 0;
         }
