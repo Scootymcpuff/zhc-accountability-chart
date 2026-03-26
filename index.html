@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZHC Accountability Chart</title>
+    <title>Accountability Chart</title>
     <style>
         * {
             margin: 0;
@@ -27,10 +27,37 @@
             align-items: center;
         }
 
-        .header h1 {
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .company-name {
             font-size: 24px;
             font-weight: 600;
             color: #f8fafc;
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            width: auto;
+            min-width: 200px;
+        }
+
+        .company-name:hover {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: -4px -8px;
+        }
+
+        .company-name:focus {
+            outline: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: -4px -8px;
         }
 
         .header span {
@@ -86,16 +113,26 @@
             overflow-x: auto;
         }
 
+        .tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .tree-node {
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .node-content {
             position: relative;
+            z-index: 2;
         }
 
         .node-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid #3b82f6;
+            border: 2px solid var(--node-color, #3b82f6);
             border-radius: 12px;
             padding: 16px 24px;
             min-width: 200px;
@@ -103,31 +140,11 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            z-index: 2;
         }
 
         .node-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
-            border-color: #60a5fa;
-        }
-
-        .node-card.chairman {
-            border-color: #f59e0b;
-            background: linear-gradient(135deg, #451a03 0%, #1e293b 100%);
-        }
-
-        .node-card.chairman:hover {
-            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
-        }
-
-        .node-card.ai-agent {
-            border-color: #10b981;
-            background: linear-gradient(135deg, #064e3b 0%, #1e293b 100%);
-        }
-
-        .node-card.ai-agent:hover {
-            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--node-color, #3b82f6);
         }
 
         .node-name {
@@ -152,56 +169,67 @@
 
         .children {
             display: flex;
-            gap: 40px;
-            margin-top: 60px;
+            justify-content: center;
+            padding-top: 40px;
             position: relative;
         }
 
+        /* Vertical line from parent to horizontal connector */
         .children::before {
             content: '';
             position: absolute;
-            top: -30px;
+            top: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
-            height: 30px;
+            height: 40px;
             background: #475569;
         }
 
         .child-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px;
             position: relative;
         }
 
+        /* Horizontal connector line for each child */
         .child-wrapper::before {
             content: '';
             position: absolute;
-            top: -30px;
+            top: -40px;
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
-            height: 30px;
+            height: 40px;
             background: #475569;
         }
 
-        .children > .child-wrapper:not(:only-child)::after {
+        /* Horizontal bar connecting siblings */
+        .child-wrapper::after {
             content: '';
             position: absolute;
-            top: -30px;
-            left: 50%;
-            width: 100%;
+            top: -40px;
+            left: 0;
+            right: 0;
             height: 2px;
             background: #475569;
-            transform: translateX(-50%);
         }
 
-        .children > .child-wrapper:first-child:not(:only-child)::after {
+        /* First child - only right half of horizontal bar */
+        .child-wrapper:first-child::after {
             left: 50%;
-            width: 50%;
         }
 
-        .children > .child-wrapper:last-child:not(:only-child)::after {
-            left: 0;
-            width: 50%;
+        /* Last child - only left half of horizontal bar */
+        .child-wrapper:last-child::after {
+            right: 50%;
+        }
+
+        /* Single child - no horizontal bar needed */
+        .child-wrapper:only-child::after {
+            display: none;
         }
 
         /* Edit View */
@@ -436,16 +464,139 @@
             border-radius: 3px;
         }
 
-        .legend-dot.chairman {
-            background: #f59e0b;
+        /* Role Types Management */
+        .role-types-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #334155;
         }
 
-        .legend-dot.ai {
-            background: #10b981;
+        .role-types-section h3 {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 12px;
         }
 
-        .legend-dot.human {
+        .role-type-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .role-type-item input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+
+        .role-type-item input[type="color"] {
+            width: 40px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .role-type-item .icon-btn {
+            width: 28px;
+            height: 28px;
+        }
+
+        .add-role-btn {
+            background: transparent;
+            border: 1px dashed #475569;
+            color: #64748b;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .add-role-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Settings Panel */
+        .settings-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             background: #3b82f6;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #334155;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #f8fafc;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #e2e8f0;
         }
 
         @media (max-width: 900px) {
@@ -463,9 +614,13 @@
                 gap: 30px;
             }
 
+            .child-wrapper {
+                padding: 20px 0;
+            }
+
             .child-wrapper::before,
             .children::before,
-            .children > .child-wrapper::after {
+            .child-wrapper::after {
                 display: none;
             }
         }
@@ -473,9 +628,9 @@
 </head>
 <body>
     <div class="header">
-        <div>
-            <h1>⚡ ZHC Accountability Chart</h1>
-            <span>Zero Human Company Organizational Structure</span>
+        <div class="header-left">
+            <input type="text" class="company-name" id="companyName" value="Kasko Cattle">
+            <span>Organizational Accountability Chart</span>
         </div>
         <div class="tabs">
             <button class="tab active" onclick="showView('chart')">Chart View</button>
@@ -486,19 +641,8 @@
     <div class="container">
         <!-- Chart View -->
         <div id="chartView" class="chart-view active">
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-dot chairman"></div>
-                    <span>Chairman (Human)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot ai"></div>
-                    <span>AI Agent</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot human"></div>
-                    <span>Human Team</span>
-                </div>
+            <div class="legend" id="legend">
+                <!-- Legend items rendered here -->
             </div>
             <div id="orgTree" class="org-tree">
                 <!-- Tree will be rendered here -->
@@ -533,9 +677,7 @@
                         <div class="form-group">
                             <label>Type</label>
                             <select id="type">
-                                <option value="human">Human</option>
-                                <option value="ai-agent">AI Agent</option>
-                                <option value="chairman">Chairman</option>
+                                <!-- Options populated dynamically -->
                             </select>
                         </div>
                         <div class="form-group">
@@ -550,6 +692,14 @@
                         <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear Form</button>
                         <button type="button" id="deleteBtn" class="btn btn-danger" style="display: none; margin-top: 10px;" onclick="deletePerson()">Delete Person</button>
                     </form>
+
+                    <div class="role-types-section">
+                        <h3>Role Types</h3>
+                        <div id="roleTypesList">
+                            <!-- Role types rendered here -->
+                        </div>
+                        <button class="add-role-btn" onclick="addRoleType()">+ Add Role Type</button>
+                    </div>
                 </div>
 
                 <div class="list-panel">
@@ -563,8 +713,17 @@
     </div>
 
     <script>
+        // Default role types with colors
+        const defaultRoleTypes = [
+            { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
+            { id: 'ai-agent', name: 'AI Agent', color: '#10b981' },
+            { id: 'human', name: 'Human Team', color: '#3b82f6' }
+        ];
+
         // Data storage
-        let people = JSON.parse(localStorage.getItem('zhc_org_chart')) || [
+        let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
+        let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
+        let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
             { id: 1, name: "Nathaniel Hubbard", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
             { id: 2, name: "Belisarius", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
             { id: 3, name: "Ghost", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
@@ -575,8 +734,24 @@
 
         // Save to localStorage
         function saveData() {
-            localStorage.setItem('zhc_org_chart', JSON.stringify(people));
+            localStorage.setItem('org_chart_company_name', companyName);
+            localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
+            localStorage.setItem('org_chart_people', JSON.stringify(people));
         }
+
+        // Initialize
+        function init() {
+            document.getElementById('companyName').value = companyName;
+            renderRoleTypes();
+            updateTypeSelect();
+            showView('chart');
+        }
+
+        // Company name change
+        document.getElementById('companyName').addEventListener('change', function() {
+            companyName = this.value;
+            saveData();
+        });
 
         // Show different views
         function showView(view) {
@@ -587,12 +762,25 @@
                 document.getElementById('chartView').classList.add('active');
                 document.querySelectorAll('.tab')[0].classList.add('active');
                 renderTree();
+                renderLegend();
             } else {
                 document.getElementById('editView').classList.add('active');
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 renderList();
                 updateReportsToOptions();
+                renderRoleTypes();
             }
+        }
+
+        // Render legend
+        function renderLegend() {
+            const container = document.getElementById('legend');
+            container.innerHTML = roleTypes.map(rt => `
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: ${rt.color}"></div>
+                    <span>${rt.name}</span>
+                </div>
+            `).join('');
         }
 
         // Build tree structure
@@ -610,16 +798,25 @@
             return root.map(addChildren);
         }
 
+        // Get color for person type
+        function getTypeColor(typeId) {
+            const type = roleTypes.find(rt => rt.id === typeId);
+            return type ? type.color : '#3b82f6';
+        }
+
         // Render tree recursively
         function renderTreeNode(node) {
             const hasChildren = node.children && node.children.length > 0;
+            const nodeColor = getTypeColor(node.type);
             
             let html = `
                 <div class="tree-node">
-                    <div class="node-card ${node.type}" onclick="selectPerson(${node.id})">
-                        <div class="node-name">${node.name}</div>
-                        <div class="node-role">${node.role}</div>
-                        ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
+                    <div class="node-content">
+                        <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
+                            <div class="node-name">${node.name}</div>
+                            <div class="node-role">${node.role}</div>
+                            ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
+                        </div>
                     </div>
             `;
             
@@ -650,7 +847,15 @@
                 return;
             }
             
-            container.innerHTML = tree.map(renderTreeNode).join('');
+            container.innerHTML = '<div class="tree">' + tree.map(renderTreeNode).join('') + '</div>';
+        }
+
+        // Update type select dropdown
+        function updateTypeSelect() {
+            const select = document.getElementById('type');
+            select.innerHTML = roleTypes.map(rt => 
+                `<option value="${rt.id}">${rt.name}</option>`
+            ).join('');
         }
 
         // Update reports-to dropdown
@@ -660,7 +865,6 @@
             
             let html = '<option value="">None (Top Level)</option>';
             people.forEach(p => {
-                // Don't allow reporting to self or descendants (would create cycle)
                 if (p.id !== currentId && !isDescendant(currentId, p.id)) {
                     html += `<option value="${p.id}">${p.name} - ${p.role}</option>`;
                 }
@@ -679,6 +883,64 @@
             return false;
         }
 
+        // Render role types in settings
+        function renderRoleTypes() {
+            const container = document.getElementById('roleTypesList');
+            container.innerHTML = roleTypes.map((rt, idx) => `
+                <div class="role-type-item">
+                    <input type="color" value="${rt.color}" onchange="updateRoleTypeColor(${idx}, this.value)">
+                    <input type="text" value="${rt.name}" onchange="updateRoleTypeName(${idx}, this.value)" placeholder="Type name">
+                    <button class="icon-btn delete" onclick="removeRoleType(${idx})">✕</button>
+                </div>
+            `).join('');
+            updateTypeSelect();
+        }
+
+        // Add new role type
+        function addRoleType() {
+            const newId = 'type_' + Date.now();
+            roleTypes.push({ id: newId, name: 'New Type', color: '#64748b' });
+            saveData();
+            renderRoleTypes();
+        }
+
+        // Update role type color
+        function updateRoleTypeColor(idx, color) {
+            roleTypes[idx].color = color;
+            saveData();
+            renderTree();
+        }
+
+        // Update role type name
+        function updateRoleTypeName(idx, name) {
+            roleTypes[idx].name = name;
+            saveData();
+            renderTree();
+            renderLegend();
+        }
+
+        // Remove role type
+        function removeRoleType(idx) {
+            if (roleTypes.length <= 1) {
+                alert('You need at least one role type');
+                return;
+            }
+            const removedType = roleTypes[idx];
+            roleTypes.splice(idx, 1);
+            
+            // Update people with this type to the first available type
+            people.forEach(p => {
+                if (p.type === removedType.id) {
+                    p.type = roleTypes[0].id;
+                }
+            });
+            
+            saveData();
+            renderRoleTypes();
+            renderList();
+            renderTree();
+        }
+
         // Render person list
         function renderList() {
             const container = document.getElementById('personList');
@@ -695,6 +957,7 @@
             
             container.innerHTML = people.map(p => {
                 const reportsTo = people.find(x => x.id === p.reportsTo);
+                const type = roleTypes.find(rt => rt.id === p.type);
                 return `
                     <div class="person-item ${editingId === p.id ? 'selected' : ''}" onclick="editPerson(${p.id})">
                         <div class="person-info">
@@ -702,6 +965,7 @@
                             <p>${p.role}${p.domain ? ` • ${p.domain}` : ''}${reportsTo ? ` → reports to ${reportsTo.name}` : ''}</p>
                         </div>
                         <div class="person-actions">
+                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${type?.color || '#3b82f6'};margin-right:8px;"></span>
                             <button class="icon-btn" onclick="event.stopPropagation(); editPerson(${p.id})">✎</button>
                             <button class="icon-btn delete" onclick="event.stopPropagation(); confirmDelete(${p.id})">✕</button>
                         </div>
@@ -749,7 +1013,7 @@
             document.getElementById('role').value = person.role;
             document.getElementById('domain').value = person.domain || '';
             document.getElementById('reportsTo').value = person.reportsTo || '';
-            document.getElementById('type').value = person.type || 'human';
+            document.getElementById('type').value = person.type || roleTypes[0].id;
             document.getElementById('accountabilities').value = person.accountabilities || '';
             document.getElementById('decisions').value = person.decisions || '';
             document.getElementById('deleteBtn').style.display = 'block';
@@ -798,8 +1062,8 @@
             }
         }
 
-        // Initial render
-        renderTree();
+        // Initialize on load
+        init();
     </script>
 </body>
 </html>
