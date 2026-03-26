@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accountability Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -11,32 +12,57 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f4f4f5;
+            --border-color: #e4e4e7;
+            --border-light: #f1f1f2;
+            --text-primary: #18181b;
+            --text-secondary: #52525b;
+            --text-tertiary: #71717a;
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #eff6ff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --line-color: #d4d4d8;
+            --line-active: #a1a1aa;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f172a;
-            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
+            line-height: 1.5;
         }
 
         .header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            padding: 20px 30px;
-            border-bottom: 1px solid #334155;
+            background: var(--bg-secondary);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header-left {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .company-name {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
-            color: #f8fafc;
+            color: var(--text-primary);
             background: transparent;
             border: none;
             padding: 0;
@@ -46,29 +72,29 @@
         }
 
         .company-name:hover {
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
             padding: 4px 8px;
             margin: -4px -8px;
         }
 
         .company-name:focus {
             outline: none;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
             padding: 4px 8px;
             margin: -4px -8px;
         }
 
         .header span {
-            color: #64748b;
-            font-size: 14px;
+            color: var(--text-tertiary);
+            font-size: 13px;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
 
         .file-actions {
@@ -77,22 +103,24 @@
         }
 
         .file-btn {
-            padding: 8px 16px;
-            background: #334155;
-            border: 1px solid #475569;
-            border-radius: 6px;
-            color: #e2e8f0;
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
             font-size: 13px;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 6px;
+            font-weight: 500;
         }
 
         .file-btn:hover {
-            background: #475569;
-            border-color: #64748b;
+            background: var(--bg-tertiary);
+            border-color: var(--line-active);
+            color: var(--text-primary);
         }
 
         .file-btn svg {
@@ -102,34 +130,38 @@
 
         .tabs {
             display: flex;
-            gap: 10px;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            padding: 4px;
+            border-radius: var(--radius-md);
         }
 
         .tab {
-            padding: 10px 20px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 14px;
-            color: #94a3b8;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 500;
         }
 
         .tab:hover {
-            background: #334155;
+            color: var(--text-primary);
         }
 
         .tab.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 30px;
+            padding: 24px;
         }
 
         /* Chart View */
@@ -141,14 +173,125 @@
             display: block;
         }
 
+        .chart-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .control-btn {
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .control-btn:hover {
+            border-color: var(--line-active);
+            color: var(--text-primary);
+        }
+
+        .control-btn.active {
+            background: var(--accent-blue-light);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-slider {
+            width: 36px;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 20px;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .toggle-slider::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent-blue);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::after {
+            transform: translateX(16px);
+        }
+
         .org-tree {
             display: flex;
             justify-content: center;
             padding: 40px;
             overflow: hidden;
             position: relative;
-            height: calc(100vh - 200px);
+            height: calc(100vh - 240px);
             cursor: grab;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
         }
 
         .org-tree:active {
@@ -179,114 +322,278 @@
         }
 
         .node-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid var(--node-color, #3b82f6);
-            border-radius: 12px;
-            padding: 16px 24px;
-            min-width: 200px;
-            text-align: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--node-color, var(--accent-blue));
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            min-width: 180px;
+            max-width: 240px;
+            text-align: left;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            box-shadow: var(--shadow-sm);
         }
 
         .node-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--node-color, #3b82f6);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--line-active);
         }
 
-        .node-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f8fafc;
+        .node-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+
+        .node-card.drag-over {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 4px;
         }
 
+        .node-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-tertiary);
+            padding: 2px;
+            display: none;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .node-card:hover .drag-handle {
+            display: block;
+        }
+
         .node-role {
-            font-size: 13px;
-            color: #94a3b8;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
         }
 
         .node-domain {
             font-size: 11px;
-            color: #64748b;
+            color: var(--text-tertiary);
             margin-top: 6px;
             padding-top: 6px;
-            border-top: 1px solid #334155;
+            border-top: 1px solid var(--border-light);
         }
 
-        /* --- Perfect Connection Lines (Using Pseudo-Elements) --- */
+        /* Collapse/Expand Button */
+        .collapse-btn {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-tertiary);
+            transition: all 0.2s;
+            z-index: 10;
+            box-shadow: var(--shadow-sm);
+        }
 
+        .collapse-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: var(--accent-blue-light);
+        }
+
+        .child-count-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--accent-blue);
+            color: white;
+            font-size: 9px;
+            font-weight: 600;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Connection Lines - Explicit DOM Elements */
         .children {
             display: flex;
             justify-content: center;
-            padding-top: 40px; /* Gap between parent and children */
+            padding-top: 40px;
             position: relative;
-        }
-
-        /* 1. Vertical line going DOWN from parent. It stops exactly halfway (20px). */
-        .children::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 20px; 
-            background: #475569;
         }
 
         .child-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 15px; /* Spacing between siblings */
+            padding: 0 12px;
             position: relative;
         }
 
-        /* 2. Vertical line going UP from child. It connects child to horizontal line. */
-        .child-wrapper::before {
-            content: '';
+        /* Vertical line down from parent - real DOM element */
+        .vertical-line-down {
             position: absolute;
-            top: -20px;
+            top: -40px;
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
-            height: 20px;
-            background: #475569;
+            height: 40px;
+            background: var(--line-color);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
-        /* 3. Horizontal connection lines between siblings */
-        .child-wrapper::after {
-            content: '';
+        /* Vertical line up to child - real DOM element */
+        .vertical-line-up {
             position: absolute;
-            top: -20px;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: var(--line-color);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        /* Horizontal connector line - real DOM element */
+        .horizontal-line {
+            position: absolute;
+            top: -40px;
             height: 2px;
-            background: #475569;
+            background: var(--line-color);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
-        /* Logic to hide/show horizontal lines depending on if it's an only child, first, or last */
-        .child-wrapper:only-child::after {
-            display: none;
-        }
-
-        .child-wrapper:first-child:not(:only-child)::after {
+        /* First child - right half only */
+        .child-wrapper:first-child .horizontal-line {
             left: 50%;
             right: 0;
         }
 
-        .child-wrapper:last-child:not(:only-child)::after {
+        /* Last child - left half only */
+        .child-wrapper:last-child .horizontal-line {
             left: 0;
             right: 50%;
         }
 
-        .child-wrapper:not(:first-child):not(:last-child)::after {
+        /* Middle children - full width */
+        .child-wrapper:not(:first-child):not(:last-child) .horizontal-line {
             left: 0;
             right: 0;
         }
 
-        /* --- End Lines --- */
+        /* Single child - no horizontal needed */
+        .child-wrapper:only-child .horizontal-line {
+            display: none;
+        }
 
+        /* Root node children don't need vertical line up */
+        .root-node > .node-content ~ .children .child-wrapper > .vertical-line-up {
+            display: none;
+        }
+
+        /* Children container animations */
+        .children-container {
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .children-container.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+        }
+
+        /* Drag and Drop Styles */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: var(--bg-tertiary);
+            border: 2px dashed var(--line-active);
+        }
+
+        .sortable-drag {
+            opacity: 0.9;
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .drop-target {
+            position: relative;
+        }
+
+        .drop-target::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px dashed var(--accent-blue);
+            border-radius: var(--radius-md);
+            pointer-events: none;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Focus Mode */
+        .focus-mode .node-card {
+            opacity: 0.4;
+            transform: scale(0.95);
+            transition: all 0.3s ease;
+        }
+
+        .focus-mode .node-card.focused {
+            opacity: 1;
+            transform: scale(1);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .focus-mode .node-card.focused-child {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Hover expand preview */
+        .hover-expand-preview .children-container {
+            opacity: 0.7;
+        }
+
+        /* Edit View */
         .edit-view {
             display: none;
         }
@@ -298,23 +605,25 @@
         .edit-layout {
             display: grid;
             grid-template-columns: 350px 1fr;
-            gap: 30px;
+            gap: 24px;
         }
 
         .form-panel {
-            background: #1e293b;
-            border-radius: 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
             padding: 24px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
             height: fit-content;
             position: sticky;
-            top: 30px;
+            top: 90px;
+            box-shadow: var(--shadow-sm);
         }
 
         .form-panel h2 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 20px;
-            color: #f8fafc;
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         .form-group {
@@ -323,31 +632,35 @@
 
         .form-group label {
             display: block;
-            font-size: 13px;
-            color: #94a3b8;
+            font-size: 12px;
+            color: var(--text-secondary);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 10px 14px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #e2e8f0;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
             font-size: 14px;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #3b82f6;
+            border-color: var(--accent-blue);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-group textarea {
@@ -356,47 +669,51 @@
         }
 
         .btn {
-            padding: 12px 20px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             width: 100%;
             margin-top: 8px;
+            font-family: inherit;
         }
 
         .btn-primary {
-            background: #3b82f6;
+            background: var(--text-primary);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #2563eb;
+            background: #27272a;
         }
 
         .btn-secondary {
-            background: #334155;
-            color: #e2e8f0;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            background: #475569;
+            background: var(--border-color);
+            color: var(--text-primary);
         }
 
         .btn-danger {
-            background: #dc2626;
-            color: white;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
         }
 
         .btn-danger:hover {
-            background: #b91c1c;
+            background: #fee2e2;
         }
 
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-group .btn {
@@ -404,29 +721,31 @@
         }
 
         .list-panel {
-            background: #1e293b;
-            border-radius: 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
             padding: 24px;
-            border: 1px solid #334155;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
         }
 
         .list-panel h2 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 20px;
-            color: #f8fafc;
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         .person-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
 
         .person-item {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -435,82 +754,94 @@
         }
 
         .person-item:hover {
-            border-color: #3b82f6;
+            border-color: var(--line-active);
+            background: var(--bg-secondary);
         }
 
         .person-item.selected {
-            border-color: #3b82f6;
-            background: #1e3a5f;
+            border-color: var(--accent-blue);
+            background: var(--accent-blue-light);
         }
 
         .person-info h3 {
-            font-size: 15px;
-            color: #f8fafc;
-            margin-bottom: 4px;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            font-weight: 500;
         }
 
         .person-info p {
-            font-size: 13px;
-            color: #64748b;
+            font-size: 12px;
+            color: var(--text-tertiary);
         }
 
         .person-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            align-items: center;
         }
 
         .icon-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border: none;
-            border-radius: 6px;
-            background: #334155;
-            color: #94a3b8;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-tertiary);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            font-size: 13px;
         }
 
         .icon-btn:hover {
-            background: #3b82f6;
-            color: white;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .icon-btn.delete:hover {
-            background: #dc2626;
+            background: #fee2e2;
+            color: #dc2626;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #64748b;
+            color: var(--text-tertiary);
         }
 
         .empty-state h3 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 8px;
-            color: #94a3b8;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
         .zoom-controls {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             display: flex;
-            gap: 8px;
+            flex-direction: column;
+            gap: 4px;
             z-index: 100;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
         }
 
         .zoom-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #e2e8f0;
-            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -519,90 +850,74 @@
         }
 
         .zoom-btn:hover {
-            background: #334155;
-            border-color: #475569;
-        }
-
-        .legend {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #94a3b8;
-        }
-
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .role-types-section {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid #334155;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
         }
 
         .role-types-section h3 {
-            font-size: 14px;
-            color: #94a3b8;
+            font-size: 12px;
+            color: var(--text-secondary);
             margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         .role-type-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
         .role-type-item input[type="text"] {
             flex: 1;
-            padding: 8px 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #e2e8f0;
+            padding: 8px 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
             font-size: 13px;
         }
 
         .role-type-item input[type="color"] {
-            width: 40px;
-            height: 32px;
+            width: 32px;
+            height: 28px;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             background: transparent;
+            padding: 0;
         }
 
         .role-type-item .icon-btn {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
         }
 
         .add-role-btn {
             background: transparent;
-            border: 1px dashed #475569;
-            color: #64748b;
+            border: 1px dashed var(--border-color);
+            color: var(--text-tertiary);
             padding: 8px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             width: 100%;
             margin-top: 8px;
+            font-weight: 500;
         }
 
         .add-role-btn:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: var(--accent-blue-light);
         }
 
         @media (max-width: 900px) {
@@ -625,17 +940,7 @@
             }
 
             .org-tree {
-                height: calc(100vh - 250px);
-            }
-
-            .zoom-controls {
-                bottom: 10px;
-                right: 10px;
-            }
-
-            .zoom-btn {
-                width: 36px;
-                height: 36px;
+                height: calc(100vh - 280px);
             }
 
             .children {
@@ -648,10 +953,9 @@
                 padding: 20px 0;
             }
 
-            /* Hide all lines on mobile layout */
-            .child-wrapper::before,
-            .children::before,
-            .child-wrapper::after {
+            .vertical-line-down,
+            .vertical-line-up,
+            .horizontal-line {
                 display: none;
             }
         }
@@ -692,7 +996,18 @@
 
     <div class="container">
         <div id="chartView" class="chart-view active">
-            <div class="legend" id="legend"></div>
+            <div class="chart-controls">
+                <div class="legend" id="legend"></div>
+                <div class="view-controls">
+                    <button class="control-btn" id="expandAllBtn" onclick="expandAll()">Expand All</button>
+                    <button class="control-btn" id="collapseAllBtn" onclick="collapseAll()">Collapse All</button>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hoverExpandToggle" onchange="toggleHoverMode()">
+                        <span class="toggle-slider"></span>
+                        Hover to Expand
+                    </label>
+                </div>
+            </div>
             <div class="zoom-controls">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
                 <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
@@ -767,21 +1082,34 @@
         let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
         let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
         let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
-            { id: 1, name: "Alex Mercer", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
-            { id: 2, name: "Jordan Blake", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
-            { id: 3, name: "Taylor Reed", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
-            { id: 4, name: "Morgan Chase", role: "Operations Manager", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
+            { id: 1, name: "Nathaniel", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
+            { id: 2, name: "Belisarius", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
+            { id: 3, name: "Ghost", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
+            { id: 4, name: "Ironhide", role: "Maintenance Ops", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
         ];
 
         let editingId = null;
+        let collapsedNodes = new Set();
+        let hoverExpandEnabled = false;
+        let hoverExpandTimeout = null;
+        let sortableInstances = [];
 
         function saveData() {
             localStorage.setItem('org_chart_company_name', companyName);
             localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
             localStorage.setItem('org_chart_people', JSON.stringify(people));
+            localStorage.setItem('org_chart_collapsed', JSON.stringify([...collapsedNodes]));
+        }
+
+        function loadCollapsedState() {
+            const saved = localStorage.getItem('org_chart_collapsed');
+            if (saved) {
+                collapsedNodes = new Set(JSON.parse(saved));
+            }
         }
 
         function init() {
+            loadCollapsedState();
             document.getElementById('companyName').value = companyName;
             renderRoleTypes();
             updateTypeSelect();
@@ -837,45 +1165,66 @@
             return type ? type.color : '#3b82f6';
         }
 
-        // --- Dramatically Simplified JS function for rendering the tree ---
-        function renderTreeNode(node, level = 0) {
+        // Render tree node with explicit line elements
+        function renderTreeNode(node, level = 0, isRoot = true) {
             const hasChildren = node.children && node.children.length > 0;
             const nodeColor = getTypeColor(node.type);
-            const isRoot = level === 0;
+            const isCollapsed = collapsedNodes.has(node.id);
+            const multipleChildren = hasChildren && node.children.length > 1;
             
             let nodeHtml = `
-                <div class="node-content">
-                    <div class="node-card" style="--node-color: ${nodeColor}" onclick="selectPerson(${node.id})">
-                        <div class="node-name">${node.name}</div>
+                <div class="node-content" data-node-id="${node.id}">
+                    ${hasChildren ? `<div class="vertical-line-down"></div>` : ''}
+                    <div class="node-card" style="--node-color: ${nodeColor}" 
+                         onclick="selectPerson(${node.id})"
+                         onmouseenter="handleNodeHover(${node.id}, true)"
+                         onmouseleave="handleNodeHover(${node.id}, false)">
+                        ${hasChildren && isCollapsed ? `<div class="child-count-badge">${node.children.length}</div>` : ''}
+                        <div class="node-header">
+                            <div class="node-name">${node.name}</div>
+                            <div class="drag-handle" draggable="true" ondragstart="handleDragStart(event, ${node.id})" title="Drag to reorder">⋮⋮</div>
+                        </div>
                         <div class="node-role">${node.role}</div>
                         ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
+                        ${hasChildren ? `
+                            <button class="collapse-btn" onclick="event.stopPropagation(); toggleCollapse(${node.id})" title="${isCollapsed ? 'Expand' : 'Collapse'}">
+                                ${isCollapsed ? '+' : '−'}
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
             
             let childrenHtml = '';
             if (hasChildren) {
-                childrenHtml += `<div class="children">`;
-                node.children.forEach((child) => {
+                childrenHtml += `<div class="children-container ${isCollapsed ? 'collapsed' : ''}" data-parent-id="${node.id}">`;
+                childrenHtml += `<div class="children" data-children-of="${node.id}">`;
+                node.children.forEach((child, index) => {
                     childrenHtml += `
-                        <div class="child-wrapper">
-                            ${renderTreeNode(child, level + 1)}
+                        <div class="child-wrapper" data-child-id="${child.id}">
+                            ${!isRoot ? '<div class="vertical-line-up"></div>' : ''}
+                            ${multipleChildren ? '<div class="horizontal-line"></div>' : ''}
+                            ${renderTreeNode(child, level + 1, false)}
                         </div>`;
                 });
-                childrenHtml += `</div>`;
+                childrenHtml += `</div></div>`;
             }
             
-            return `<div class="tree-node ${isRoot ? 'root-node' : ''}">${nodeHtml}${childrenHtml}</div>`;
+            return `<div class="tree-node ${isRoot ? 'root-node' : ''}" data-node-id="${node.id}">${nodeHtml}${childrenHtml}</div>`;
         }
 
         let zoomLevel = 1;
         let panX = 0;
         let panY = 0;
-        let isDragging = false;
+        let isPanning = false;
         let lastMouseX = 0;
         let lastMouseY = 0;
 
         function renderTree() {
+            // Clean up old Sortable instances
+            sortableInstances.forEach(s => s.destroy());
+            sortableInstances = [];
+            
             const tree = buildTree();
             const container = document.getElementById('orgTree');
             
@@ -884,9 +1233,11 @@
                 return;
             }
             
-            container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(renderTreeNode).join('') + '</div></div>';
+            container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(n => renderTreeNode(n, 0, true)).join('') + '</div></div>';
+            
             applyTransform();
             setupPanZoom();
+            initDragAndDrop();
         }
 
         function applyTransform() {
@@ -903,6 +1254,7 @@
             if (!treeArea) return;
 
             treeArea.addEventListener('wheel', function(e) {
+                if (e.target.closest('.node-card')) return;
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? 0.9 : 1.1;
                 zoomLevel = Math.max(0.3, Math.min(3, zoomLevel * delta));
@@ -910,15 +1262,15 @@
             }, { passive: false });
 
             treeArea.addEventListener('mousedown', function(e) {
-                if (e.target.closest('.node-card')) return; 
-                isDragging = true;
+                if (e.target.closest('.node-card')) return;
+                isPanning = true;
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
                 treeArea.style.cursor = 'grabbing';
             });
 
             document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
+                if (!isPanning) return;
                 const deltaX = e.clientX - lastMouseX;
                 const deltaY = e.clientY - lastMouseY;
                 panX += deltaX;
@@ -929,10 +1281,177 @@
             });
 
             document.addEventListener('mouseup', function() {
-                isDragging = false;
+                isPanning = false;
                 treeArea.style.cursor = 'grab';
             });
         }
+
+        // Collapse/Expand Functions
+        function toggleCollapse(nodeId, event) {
+            if (event) event.stopPropagation();
+            
+            if (collapsedNodes.has(nodeId)) {
+                collapsedNodes.delete(nodeId);
+            } else {
+                collapsedNodes.add(nodeId);
+            }
+            
+            saveData();
+            renderTree();
+        }
+
+        function expandAll() {
+            collapsedNodes.clear();
+            saveData();
+            renderTree();
+        }
+
+        function collapseAll() {
+            people.forEach(person => {
+                const hasChildren = people.some(p => p.reportsTo === person.id);
+                if (hasChildren) collapsedNodes.add(person.id);
+            });
+            saveData();
+            renderTree();
+        }
+
+        function toggleHoverMode() {
+            hoverExpandEnabled = document.getElementById('hoverExpandToggle').checked;
+        }
+
+        function handleNodeHover(nodeId, isHovering) {
+            if (!hoverExpandEnabled) return;
+            
+            if (isHovering && collapsedNodes.has(nodeId)) {
+                hoverExpandTimeout = setTimeout(() => {
+                    collapsedNodes.delete(nodeId);
+                    saveData();
+                    renderTree();
+                }, 400);
+            } else if (!isHovering && hoverExpandTimeout) {
+                clearTimeout(hoverExpandTimeout);
+                hoverExpandTimeout = null;
+            }
+        }
+
+        // Drag and Drop with SortableJS
+        function initDragAndDrop() {
+            // Initialize Sortable on each children container
+            document.querySelectorAll('.children').forEach(container => {
+                const parentId = container.dataset.childrenOf ? parseInt(container.dataset.childrenOf) : null;
+                
+                const sortable = new Sortable(container, {
+                    group: {
+                        name: 'nested',
+                        pull: true,
+                        put: true
+                    },
+                    animation: 200,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onStart: function(evt) {
+                        evt.item.closest('.node-card').classList.add('dragging');
+                    },
+                    onEnd: function(evt) {
+                        const card = evt.item.closest('.node-card');
+                        if (card) card.classList.remove('dragging');
+                        
+                        const nodeId = parseInt(evt.item.dataset.childId);
+                        const newParentId = evt.to.dataset.childrenOf ? parseInt(evt.to.dataset.childrenOf) : null;
+                        const oldIndex = evt.oldIndex;
+                        const newIndex = evt.newIndex;
+                        
+                        // Update the data model
+                        if (nodeId) {
+                            const node = people.find(p => p.id === nodeId);
+                            if (node) {
+                                // Check if this would create a circular reference
+                                if (newParentId && isDescendant(nodeId, newParentId)) {
+                                    alert('Cannot move a node under its own descendant');
+                                    renderTree();
+                                    return;
+                                }
+                                
+                                node.reportsTo = newParentId;
+                                
+                                // Reorder siblings
+                                const siblings = people.filter(p => p.reportsTo === newParentId);
+                                siblings.sort((a, b) => {
+                                    const aIndex = Array.from(evt.to.children).findIndex(child => 
+                                        parseInt(child.dataset.childId) === a.id
+                                    );
+                                    const bIndex = Array.from(evt.to.children).findIndex(child => 
+                                        parseInt(child.dataset.childId) === b.id
+                                    );
+                                    return aIndex - bIndex;
+                                });
+                                
+                                saveData();
+                                renderTree();
+                            }
+                        }
+                    }
+                });
+                
+                sortableInstances.push(sortable);
+            });
+        }
+
+        // HTML5 Drag and Drop for reparenting (fallback/alternative)
+        let draggedNodeId = null;
+
+        function handleDragStart(event, nodeId) {
+            draggedNodeId = nodeId;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', nodeId);
+            
+            // Add visual feedback
+            document.querySelectorAll('.node-card').forEach(card => {
+                card.classList.add('potential-drop-target');
+            });
+        }
+
+        // Allow dropping on nodes to reparent
+        document.addEventListener('dragover', function(e) {
+            if (!draggedNodeId) return;
+            
+            const card = e.target.closest('.node-card');
+            if (card && !card.contains(e.target.closest('.drag-handle'))) {
+                e.preventDefault();
+                card.classList.add('drag-over');
+            }
+        });
+
+        document.addEventListener('dragleave', function(e) {
+            const card = e.target.closest('.node-card');
+            if (card) {
+                card.classList.remove('drag-over');
+            }
+        });
+
+        document.addEventListener('drop', function(e) {
+            if (!draggedNodeId) return;
+            
+            const card = e.target.closest('.node-card');
+            if (card) {
+                e.preventDefault();
+                card.classList.remove('drag-over');
+                
+                const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
+                
+                if (draggedNodeId !== targetNodeId && !isDescendant(draggedNodeId, targetNodeId)) {
+                    const node = people.find(p => p.id === draggedNodeId);
+                    if (node) {
+                        node.reportsTo = targetNodeId;
+                        saveData();
+                        renderTree();
+                    }
+                }
+            }
+            
+            draggedNodeId = null;
+        });
 
         function updateTypeSelect() {
             const select = document.getElementById('type');
@@ -1066,6 +1585,7 @@
             if (confirm('Delete this person? Any people reporting to them will become top-level.')) {
                 people.forEach(p => { if (p.reportsTo === id) p.reportsTo = null; });
                 people = people.filter(p => p.id !== id);
+                collapsedNodes.delete(id);
                 saveData(); resetForm(); renderList();
             }
         }
@@ -1073,7 +1593,14 @@
         function deletePerson() { if (editingId) confirmDelete(editingId); }
 
         function exportData() {
-            const data = { version: '1.0', exportedAt: new Date().toISOString(), companyName: companyName, roleTypes: roleTypes, people: people };
+            const data = { 
+                version: '2.0', 
+                exportedAt: new Date().toISOString(), 
+                companyName: companyName, 
+                roleTypes: roleTypes, 
+                people: people,
+                collapsedNodes: [...collapsedNodes]
+            };
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1097,6 +1624,9 @@
                     companyName = data.companyName || 'Organization';
                     roleTypes = data.roleTypes || defaultRoleTypes;
                     people = data.people;
+                    if (data.collapsedNodes) {
+                        collapsedNodes = new Set(data.collapsedNodes);
+                    }
                     saveData(); init();
                 } catch (err) { alert('Error: ' + err.message); }
                 input.value = '';
