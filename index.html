@@ -214,37 +214,10 @@
             border-top: 1px solid #334155;
         }
 
-        /* Simplified tree structure - lines controlled by explicit classes */
+        /* Tree structure - ONLY using explicit div elements, NO pseudo-elements */
 
         .tree-node {
             position: relative;
-        }
-
-        /* Root nodes should NEVER have any lines above them - aggressive reset */
-        .tree.root-node > .tree-node,
-        .tree > .tree-node.root-node,
-        .tree-node.root-node .child-wrapper,
-        .tree-node.root-node:first-child,
-        .tree-node.root-node::before,
-        .tree-node.root-node::after,
-        .tree-node.root-node > *::before,
-        .tree-node.root-node > *::after {
-            /* No pseudo-element lines on root nodes */
-        }
-
-        /* Explicitly ensure root node children don't get vertical-line-up */
-        .tree-node.root-node > .children > .child-wrapper > .vertical-line-up {
-            display: none !important;
-        }
-
-        /* Nuclear option: any line element directly under the root node's children should be hidden */
-        .tree > .tree-node.root-node > .children > .child-wrapper .vertical-line-up {
-            display: none !important;
-        }
-
-        /* Debug: highlight any lines that appear on root level */
-        .tree-node.root-node .vertical-line-up {
-            background: red !important; /* This will make any stray lines obvious */
         }
 
         .children {
@@ -252,6 +225,12 @@
             justify-content: center;
             padding-top: 50px;
             position: relative;
+        }
+
+        /* NO pseudo-elements on children container */
+        .children::before,
+        .children::after {
+            display: none !important;
         }
 
         .child-wrapper {
@@ -262,14 +241,19 @@
             position: relative;
         }
 
-        /* Tree lines using real div elements */
+        /* NO pseudo-elements on child wrappers */
+        .child-wrapper::before,
+        .child-wrapper::after {
+            display: none !important;
+        }
+
+        /* Tree lines using ONLY real div elements */
 
         .node-content {
             position: relative;
         }
 
         /* Vertical line extending DOWN from parent to meet horizontal bar */
-        /* The .children container has 50px padding-top, so we need exactly 50px */
         .vertical-line-down {
             position: absolute;
             bottom: -50px;
@@ -282,7 +266,6 @@
         }
 
         /* Vertical line extending UP from child to meet horizontal bar */
-        /* Extends from the child UPWARD to the horizontal bar (which is at top: -50px) */
         .vertical-line-up {
             position: absolute;
             top: -50px;
@@ -294,8 +277,12 @@
             pointer-events: none;
         }
 
+        /* HIDE vertical-line-up for direct children of root node */
+        .tree-node.root-node > .children > .child-wrapper > .vertical-line-up {
+            display: none !important;
+        }
+
         /* Horizontal connector between siblings */
-        /* Positioned at the level where vertical lines meet (50px above the children) */
         .horizontal-line {
             position: absolute;
             top: -50px;
