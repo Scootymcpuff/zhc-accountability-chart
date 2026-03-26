@@ -220,6 +220,33 @@
             position: relative;
         }
 
+        /* Root nodes should NEVER have any lines above them - aggressive reset */
+        .tree.root-node > .tree-node,
+        .tree > .tree-node.root-node,
+        .tree-node.root-node .child-wrapper,
+        .tree-node.root-node:first-child,
+        .tree-node.root-node::before,
+        .tree-node.root-node::after,
+        .tree-node.root-node > *::before,
+        .tree-node.root-node > *::after {
+            /* No pseudo-element lines on root nodes */
+        }
+
+        /* Explicitly ensure root node children don't get vertical-line-up */
+        .tree-node.root-node > .children > .child-wrapper > .vertical-line-up {
+            display: none !important;
+        }
+
+        /* Nuclear option: any line element directly under the root node's children should be hidden */
+        .tree > .tree-node.root-node > .children > .child-wrapper .vertical-line-up {
+            display: none !important;
+        }
+
+        /* Debug: highlight any lines that appear on root level */
+        .tree-node.root-node .vertical-line-up {
+            background: red !important; /* This will make any stray lines obvious */
+        }
+
         .children {
             display: flex;
             justify-content: center;
@@ -945,13 +972,15 @@
         }
 
         // Render tree recursively
-        // isRoot parameter: true for top-level nodes, false for children
-        function renderTreeNode(node, isRoot = true) {
+        // level parameter: 0 for root, 1 for children, 2 for grandchildren, etc.
+        function renderTreeNode(node, level = 0) {
             const hasChildren = node.children && node.children.length > 0;
             const multipleChildren = hasChildren && node.children.length > 1;
             const nodeColor = getTypeColor(node.type);
+            const isRoot = level === 0;
             
             // Build the node card
+            // vertical-line-down extends from parent down to children
             let nodeHtml = `
                 <div class="node-content">
                     ${hasChildren ? '<div class="vertical-line-down"></div>' : ''}
@@ -969,17 +998,20 @@
                 const childrenClass = multipleChildren ? 'children has-children multiple-children' : 'children has-children';
                 childrenHtml += `<div class="${childrenClass}">`;
                 node.children.forEach(child => {
-                    // Each child wrapper gets a line going up
-                    childrenHtml += `<div class="child-wrapper">
-                        ${!isRoot ? '<div class="vertical-line-up"></div>' : ''}
+                    // All children (level >= 1) need vertical-line-up to connect to parent
+                    // But we check child's level (level + 1) >= 1, which is always true for children
+                    const childLevel = level + 1;
+                    const showVerticalUp = childLevel >= 1;
+                    childrenHtml += `<div class="child-wrapper" data-level="${childLevel}">
+                        ${showVerticalUp ? '<div class="vertical-line-up"></div>' : ''}
                         ${multipleChildren ? '<div class="horizontal-line"></div>' : ''}
-                        ${renderTreeNode(child, false)}
+                        ${renderTreeNode(child, childLevel)}
                     </div>`;
                 });
                 childrenHtml += '</div>';
             }
             
-            return `<div class="tree-node ${isRoot ? 'root-node' : ''}">${nodeHtml}${childrenHtml}</div>`;
+            return `<div class="tree-node ${isRoot ? 'root-node' : ''}" data-level="${level}">${nodeHtml}${childrenHtml}</div>`;
         }
 
         // Zoom state
