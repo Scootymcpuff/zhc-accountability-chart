@@ -170,6 +170,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
 
         .node-content {
@@ -214,11 +215,7 @@
             border-top: 1px solid #334155;
         }
 
-        /* Tree structure - using explicit line elements with proper positioning */
-
-        .tree-node {
-            position: relative;
-        }
+        /* --- Updated Connection Lines --- */
 
         .children {
             display: flex;
@@ -235,14 +232,6 @@
             position: relative;
         }
 
-        /* Tree lines using explicit div elements */
-
-        .node-content {
-            position: relative;
-        }
-
-        /* Vertical line extending DOWN from parent */
-        /* This goes from bottom of parent card down to the horizontal bar level */
         .vertical-line-down {
             position: absolute;
             bottom: -50px;
@@ -254,20 +243,17 @@
             z-index: 1;
         }
 
-        /* Lines container sits at the top of child-wrapper (at the horizontal bar level) */
         .lines-container {
             position: absolute;
             top: -50px;
             left: 0;
             right: 0;
-            height: 2px; /* Just the horizontal bar height */
+            height: 50px;
         }
 
-        /* Vertical line extending UP from child */
-        /* This goes from horizontal bar level UP to meet the parent's vertical-line-down */
         .vertical-line-up {
             position: absolute;
-            bottom: 0;
+            top: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 2px;
@@ -275,7 +261,6 @@
             background: #475569;
         }
 
-        /* Horizontal connector between siblings */
         .horizontal-line {
             position: absolute;
             top: 0;
@@ -285,24 +270,22 @@
             background: #475569;
         }
 
-        /* First child: horizontal line only on right side */
         .child-wrapper:first-child .horizontal-line {
             left: 50%;
             right: 0;
         }
 
-        /* Last child: horizontal line only on left side */
         .child-wrapper:last-child .horizontal-line {
             left: 0;
             right: 50%;
         }
 
-        /* Single child: no horizontal line needed */
         .child-wrapper:only-child .horizontal-line {
             display: none;
         }
 
-        /* Edit View */
+        /* --- End Lines --- */
+
         .edit-view {
             display: none;
         }
@@ -419,7 +402,6 @@
             flex: 1;
         }
 
-        /* List Panel */
         .list-panel {
             background: #1e293b;
             border-radius: 12px;
@@ -511,7 +493,6 @@
             color: #94a3b8;
         }
 
-        /* Zoom Controls */
         .zoom-controls {
             position: fixed;
             bottom: 20px;
@@ -541,7 +522,6 @@
             border-color: #475569;
         }
 
-        /* Legend */
         .legend {
             display: flex;
             gap: 20px;
@@ -564,7 +544,6 @@
             border-radius: 3px;
         }
 
-        /* Role Types Management */
         .role-types-section {
             margin-top: 24px;
             padding-top: 24px;
@@ -625,80 +604,6 @@
             color: #3b82f6;
         }
 
-        /* Settings Panel */
-        .settings-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #3b82f6;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            transition: all 0.2s;
-        }
-
-        .settings-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #1e293b;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid #334155;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-            color: #f8fafc;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: #64748b;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .close-modal:hover {
-            color: #e2e8f0;
-        }
-
         @media (max-width: 900px) {
             .edit-layout {
                 grid-template-columns: 1fr;
@@ -741,12 +646,6 @@
             .child-wrapper {
                 padding: 20px 0;
             }
-
-            .child-wrapper::before,
-            .children::before,
-            .child-wrapper::after {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -784,22 +683,18 @@
     </div>
 
     <div class="container">
-        <!-- Chart View -->
         <div id="chartView" class="chart-view active">
             <div class="legend" id="legend">
-                <!-- Legend items rendered here -->
-            </div>
+                </div>
             <div class="zoom-controls">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
                 <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
                 <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
             </div>
             <div id="orgTree" class="org-tree">
-                <!-- Tree will be rendered here -->
-            </div>
+                </div>
         </div>
 
-        <!-- Edit View -->
         <div id="editView" class="edit-view">
             <div class="edit-layout">
                 <div class="form-panel">
@@ -827,8 +722,7 @@
                         <div class="form-group">
                             <label>Type</label>
                             <select id="type">
-                                <!-- Options populated dynamically -->
-                            </select>
+                                </select>
                         </div>
                         <div class="form-group">
                             <label>Key Accountabilities</label>
@@ -846,8 +740,7 @@
                     <div class="role-types-section">
                         <h3>Role Types</h3>
                         <div id="roleTypesList">
-                            <!-- Role types rendered here -->
-                        </div>
+                            </div>
                         <button class="add-role-btn" onclick="addRoleType()">+ Add Role Type</button>
                     </div>
                 </div>
@@ -855,8 +748,7 @@
                 <div class="list-panel">
                     <h2>People</h2>
                     <div id="personList" class="person-list">
-                        <!-- List will be rendered here -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -955,14 +847,11 @@
         }
 
         // Render tree recursively
-        // level parameter: 0 for root, 1 for children, 2 for grandchildren, etc.
         function renderTreeNode(node, level = 0) {
             const hasChildren = node.children && node.children.length > 0;
-            const multipleChildren = hasChildren && node.children.length > 1;
             const nodeColor = getTypeColor(node.type);
             const isRoot = level === 0;
             
-            // Build the node card with line extending down to children
             let nodeHtml = `
                 <div class="node-content">
                     ${hasChildren ? '<div class="vertical-line-down"></div>' : ''}
@@ -974,39 +863,20 @@
                 </div>
             `;
             
-            // Build children if any
             let childrenHtml = '';
             if (hasChildren) {
                 childrenHtml += `<div class="children">`;
                 node.children.forEach((child, index) => {
-                    const childLevel = level + 1;
-                    const isFirstChild = index === 0;
-                    const isLastChild = index === node.children.length - 1;
-                    
-                    // Each child wrapper contains:
-                    // 1. A vertical line going UP (except for root's immediate children)
-                    // 2. A horizontal line if there are multiple children
-                    childrenHtml += `<div class="child-wrapper">`;
-                    
-                    // Lines container at the top of child-wrapper
-                    childrenHtml += `<div class="lines-container">`;
-                    
-                    // Vertical line up (hidden for root's children to prevent dangling line)
-                    if (!isRoot) {
-                        childrenHtml += '<div class="vertical-line-up"></div>';
-                    }
-                    
-                    // Horizontal line for connecting siblings
-                    if (multipleChildren) {
-                        childrenHtml += '<div class="horizontal-line"></div>';
-                    }
-                    
-                    childrenHtml += '</div>'; // end lines-container
-                    
-                    childrenHtml += renderTreeNode(child, childLevel);
-                    childrenHtml += '</div>';
+                    childrenHtml += `
+                        <div class="child-wrapper">
+                            <div class="lines-container">
+                                <div class="vertical-line-up"></div>
+                                <div class="horizontal-line"></div>
+                            </div>
+                            ${renderTreeNode(child, level + 1)}
+                        </div>`;
                 });
-                childrenHtml += '</div>';
+                childrenHtml += `</div>`;
             }
             
             return `<div class="tree-node ${isRoot ? 'root-node' : ''}">${nodeHtml}${childrenHtml}</div>`;
@@ -1073,7 +943,6 @@
             const treeArea = document.getElementById('orgTree');
             if (!treeArea) return;
 
-            // Mouse wheel zoom
             treeArea.addEventListener('wheel', function(e) {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -1081,9 +950,8 @@
                 applyTransform();
             }, { passive: false });
 
-            // Mouse drag to pan
             treeArea.addEventListener('mousedown', function(e) {
-                if (e.target.closest('.node-card')) return; // Don't drag when clicking nodes
+                if (e.target.closest('.node-card')) return; 
                 isDragging = true;
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
@@ -1129,7 +997,6 @@
             select.innerHTML = html;
         }
 
-        // Check if person is descendant of another
         function isDescendant(parentId, childId) {
             if (!parentId) return false;
             const children = people.filter(p => p.reportsTo === parentId);
@@ -1140,7 +1007,6 @@
             return false;
         }
 
-        // Render role types in settings
         function renderRoleTypes() {
             const container = document.getElementById('roleTypesList');
             container.innerHTML = roleTypes.map((rt, idx) => `
@@ -1153,7 +1019,6 @@
             updateTypeSelect();
         }
 
-        // Add new role type
         function addRoleType() {
             const newId = 'type_' + Date.now();
             roleTypes.push({ id: newId, name: 'New Type', color: '#64748b' });
@@ -1161,14 +1026,12 @@
             renderRoleTypes();
         }
 
-        // Update role type color
         function updateRoleTypeColor(idx, color) {
             roleTypes[idx].color = color;
             saveData();
             renderTree();
         }
 
-        // Update role type name
         function updateRoleTypeName(idx, name) {
             roleTypes[idx].name = name;
             saveData();
@@ -1176,7 +1039,6 @@
             renderLegend();
         }
 
-        // Remove role type
         function removeRoleType(idx) {
             if (roleTypes.length <= 1) {
                 alert('You need at least one role type');
@@ -1184,34 +1046,23 @@
             }
             const removedType = roleTypes[idx];
             roleTypes.splice(idx, 1);
-            
-            // Update people with this type to the first available type
             people.forEach(p => {
                 if (p.type === removedType.id) {
                     p.type = roleTypes[0].id;
                 }
             });
-            
             saveData();
             renderRoleTypes();
             renderList();
             renderTree();
         }
 
-        // Render person list
         function renderList() {
             const container = document.getElementById('personList');
-            
             if (people.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No people added yet</h3>
-                        <p>Use the form to add your first person</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3></div>`;
                 return;
             }
-            
             container.innerHTML = people.map(p => {
                 const reportsTo = people.find(x => x.id === p.reportsTo);
                 const type = roleTypes.find(rt => rt.id === p.type);
@@ -1231,10 +1082,8 @@
             }).join('');
         }
 
-        // Form submission
         document.getElementById('personForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const personData = {
                 id: editingId || Date.now(),
                 name: document.getElementById('name').value,
@@ -1245,25 +1094,21 @@
                 accountabilities: document.getElementById('accountabilities').value,
                 decisions: document.getElementById('decisions').value
             };
-            
             if (editingId) {
                 const idx = people.findIndex(p => p.id === editingId);
                 people[idx] = personData;
             } else {
                 people.push(personData);
             }
-            
             saveData();
             resetForm();
             renderList();
             updateReportsToOptions();
         });
 
-        // Edit person
         function editPerson(id) {
             editingId = id;
             const person = people.find(p => p.id === id);
-            
             document.getElementById('formTitle').textContent = 'Edit Person';
             document.getElementById('personId').value = person.id;
             document.getElementById('name').value = person.name;
@@ -1274,18 +1119,15 @@
             document.getElementById('accountabilities').value = person.accountabilities || '';
             document.getElementById('decisions').value = person.decisions || '';
             document.getElementById('deleteBtn').style.display = 'block';
-            
             updateReportsToOptions();
             renderList();
         }
 
-        // Select from chart
         function selectPerson(id) {
             showView('edit');
             editPerson(id);
         }
 
-        // Reset form
         function resetForm() {
             editingId = null;
             document.getElementById('formTitle').textContent = 'Add Person';
@@ -1295,16 +1137,9 @@
             renderList();
         }
 
-        // Confirm delete
         function confirmDelete(id) {
             if (confirm('Delete this person? Any people reporting to them will become top-level.')) {
-                // Reassign children to top level
-                people.forEach(p => {
-                    if (p.reportsTo === id) {
-                        p.reportsTo = null;
-                    }
-                });
-                
+                people.forEach(p => { if (p.reportsTo === id) p.reportsTo = null; });
                 people = people.filter(p => p.id !== id);
                 saveData();
                 resetForm();
@@ -1312,14 +1147,8 @@
             }
         }
 
-        // Delete person
-        function deletePerson() {
-            if (editingId) {
-                confirmDelete(editingId);
-            }
-        }
+        function deletePerson() { if (editingId) confirmDelete(editingId); }
 
-        // Export data to JSON file
         function exportData() {
             const data = {
                 version: '1.0',
@@ -1328,82 +1157,39 @@
                 roleTypes: roleTypes,
                 people: people
             };
-            
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
-            // Create filename with company name and date
             const date = new Date().toISOString().split('T')[0];
             const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const filename = `${safeName}_org_chart_${date}.json`;
-            
-            // Trigger download
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = `${safeName}_org_chart_${date}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url);
         }
 
-        // Import data from JSON file
         function importData(input) {
             const file = input.files[0];
             if (!file) return;
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    
-                    // Validate data structure
-                    if (!data.people || !Array.isArray(data.people)) {
-                        throw new Error('Invalid file format: missing people data');
-                    }
-                    
-                    // Confirm if there's existing data
-                    if (people.length > 0) {
-                        if (!confirm('This will replace all current data. Are you sure?')) {
-                            input.value = '';
-                            return;
-                        }
-                    }
-                    
-                    // Load the data
+                    if (!data.people) throw new Error('Invalid format');
+                    if (people.length > 0 && !confirm('Replace current data?')) return;
                     companyName = data.companyName || 'Organization';
                     roleTypes = data.roleTypes || defaultRoleTypes;
                     people = data.people;
-                    
-                    // Save to localStorage
                     saveData();
-                    
-                    // Update UI
-                    document.getElementById('companyName').value = companyName;
-                    renderRoleTypes();
-                    updateTypeSelect();
-                    
-                    // Refresh current view
-                    const chartView = document.getElementById('chartView');
-                    if (chartView.classList.contains('active')) {
-                        renderTree();
-                        renderLegend();
-                    } else {
-                        renderList();
-                        resetForm();
-                    }
-                    
-                    alert('Data loaded successfully!');
-                } catch (err) {
-                    alert('Error loading file: ' + err.message);
-                }
+                    init();
+                } catch (err) { alert('Error: ' + err.message); }
                 input.value = '';
             };
             reader.readAsText(file);
         }
 
-        // Initialize on load
         init();
     </script>
 </body>
