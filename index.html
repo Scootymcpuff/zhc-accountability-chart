@@ -214,11 +214,25 @@
             border-top: 1px solid #334155;
         }
 
-        /* Tree structure with explicit line control */
-        
-        /* Root nodes should never have lines above them */
-        .root-node > .node-content::before,
-        .root-node > .node-content::after {
+        /* Tree structure with SVG-like precision using explicit line elements */
+
+        .tree-node {
+            position: relative;
+        }
+
+        /* Vertical connector line drawn as a real element */
+        .connector-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 50px;
+            background: #475569;
+            top: -50px;
+        }
+
+        /* Root nodes should NOT have connector lines above them */
+        .tree-node.root-node > .connector-line {
             display: none !important;
         }
 
@@ -229,11 +243,7 @@
             position: relative;
         }
 
-        /* Container for children - draws the vertical line down from parent */
-        .children.has-children {
-            /* This container holds the vertical line */
-        }
-
+        /* The vertical line from parent down to the horizontal bar */
         .children.has-children::before {
             content: '';
             position: absolute;
@@ -253,8 +263,8 @@
             position: relative;
         }
 
-        /* Vertical line going UP from child to meet the horizontal connector */
-        .child-wrapper::before {
+        /* Vertical line from child UP to the horizontal bar or parent */
+        .child-wrapper::after {
             content: '';
             position: absolute;
             top: -50px;
@@ -266,7 +276,7 @@
         }
 
         /* Horizontal connector between siblings - only when 2+ children */
-        .children.multiple-children > .child-wrapper::after {
+        .children.multiple-children > .child-wrapper::before {
             content: '';
             position: absolute;
             top: -50px;
@@ -275,19 +285,19 @@
         }
 
         /* First child: horizontal line from center to right */
-        .children.multiple-children > .child-wrapper:first-child::after {
+        .children.multiple-children > .child-wrapper:first-child::before {
             left: 50%;
             right: 0;
         }
 
         /* Last child: horizontal line from left to center */
-        .children.multiple-children > .child-wrapper:last-child::after {
+        .children.multiple-children > .child-wrapper:last-child::before {
             left: 0;
             right: 50%;
         }
 
         /* Middle children: full width horizontal line */
-        .children.multiple-children > .child-wrapper:not(:first-child):not(:last-child)::after {
+        .children.multiple-children > .child-wrapper:not(:first-child):not(:last-child)::before {
             left: 0;
             right: 0;
         }
