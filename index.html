@@ -65,6 +65,41 @@
             font-size: 14px;
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-btn {
+            padding: 8px 16px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .file-btn:hover {
+            background: #475569;
+            border-color: #64748b;
+        }
+
+        .file-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .tabs {
             display: flex;
             gap: 10px;
@@ -632,9 +667,30 @@
             <input type="text" class="company-name" id="companyName" value="Kasko Cattle">
             <span>Organizational Accountability Chart</span>
         </div>
-        <div class="tabs">
-            <button class="tab active" onclick="showView('chart')">Chart View</button>
-            <button class="tab" onclick="showView('edit')">Edit People</button>
+        <div class="header-actions">
+            <div class="file-actions">
+                <button class="file-btn" onclick="exportData()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Save to File
+                </button>
+                <button class="file-btn" onclick="document.getElementById('fileInput').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Load from File
+                </button>
+                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importData(this)">
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="showView('chart')">Chart View</button>
+                <button class="tab" onclick="showView('edit')">Edit People</button>
+            </div>
         </div>
     </div>
 
@@ -1060,6 +1116,90 @@
             if (editingId) {
                 confirmDelete(editingId);
             }
+        }
+
+        // Export data to JSON file
+        function exportData() {
+            const data = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                companyName: companyName,
+                roleTypes: roleTypes,
+                people: people
+            };
+            
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create filename with company name and date
+            const date = new Date().toISOString().split('T')[0];
+            const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const filename = `${safeName}_org_chart_${date}.json`;
+            
+            // Trigger download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Import data from JSON file
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Validate data structure
+                    if (!data.people || !Array.isArray(data.people)) {
+                        throw new Error('Invalid file format: missing people data');
+                    }
+                    
+                    // Confirm if there's existing data
+                    if (people.length > 0) {
+                        if (!confirm('This will replace all current data. Are you sure?')) {
+                            input.value = '';
+                            return;
+                        }
+                    }
+                    
+                    // Load the data
+                    companyName = data.companyName || 'Organization';
+                    roleTypes = data.roleTypes || defaultRoleTypes;
+                    people = data.people;
+                    
+                    // Save to localStorage
+                    saveData();
+                    
+                    // Update UI
+                    document.getElementById('companyName').value = companyName;
+                    renderRoleTypes();
+                    updateTypeSelect();
+                    
+                    // Refresh current view
+                    const chartView = document.getElementById('chartView');
+                    if (chartView.classList.contains('active')) {
+                        renderTree();
+                        renderLegend();
+                    } else {
+                        renderList();
+                        resetForm();
+                    }
+                    
+                    alert('Data loaded successfully!');
+                } catch (err) {
+                    alert('Error loading file: ' + err.message);
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
         }
 
         // Initialize on load
