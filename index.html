@@ -65,7 +65,7 @@
 
         .header {
             background: var(--bg-secondary);
-            padding: 16px 24px;
+            padding: 12px 24px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -245,9 +245,9 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 24px;
+            padding: 16px 24px;
         }
 
         /* Chart View */
@@ -263,9 +263,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 12px;
         }
 
         .legend {
@@ -372,10 +372,10 @@
         .org-tree {
             display: flex;
             justify-content: flex-start;
-            padding: 40px;
+            padding: 20px;
             overflow: hidden;
             position: relative;
-            height: calc(100vh - 240px);
+            height: calc(100vh - 180px);
             cursor: grab;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -1041,6 +1041,42 @@
             background: var(--accent-blue-light);
         }
 
+        /* Desktop wide screen optimizations */
+        @media (min-width: 1400px) {
+            .container {
+                padding: 12px 32px;
+            }
+
+            .org-tree {
+                height: calc(100vh - 160px);
+                padding: 16px;
+            }
+
+            .node-card {
+                min-width: 200px;
+                max-width: 280px;
+                padding: 16px 22px;
+            }
+        }
+
+        /* Extra wide screens */
+        @media (min-width: 1920px) {
+            .container {
+                padding: 10px 40px;
+            }
+
+            .org-tree {
+                height: calc(100vh - 150px);
+                padding: 12px;
+            }
+
+            .node-card {
+                min-width: 220px;
+                max-width: 300px;
+                padding: 18px 24px;
+            }
+        }
+
         @media (max-width: 900px) {
             .edit-layout {
                 grid-template-columns: 1fr;
@@ -1061,7 +1097,8 @@
             }
 
             .org-tree {
-                height: calc(100vh - 280px);
+                height: calc(100vh - 220px);
+                padding: 16px;
             }
 
             /* Mobile vertical layout */
