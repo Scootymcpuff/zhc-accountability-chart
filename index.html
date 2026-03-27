@@ -96,19 +96,12 @@
             transition: color var(--transition-speed);
         }
 
-        .company-name:hover {
+        .company-name:hover, .company-name:focus {
             background: var(--bg-tertiary);
             border-radius: var(--radius-sm);
             padding: 4px 8px;
             margin: -4px -8px;
-        }
-
-        .company-name:focus {
             outline: none;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-sm);
-            padding: 4px 8px;
-            margin: -4px -8px;
         }
 
         .header span {
@@ -123,12 +116,7 @@
             gap: 16px;
         }
 
-        .file-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .export-actions {
+        .file-actions, .export-actions {
             display: flex;
             gap: 8px;
         }
@@ -257,13 +245,8 @@
         }
 
         /* Chart View */
-        .chart-view {
-            display: none;
-        }
-
-        .chart-view.active {
-            display: block;
-        }
+        .chart-view { display: none; }
+        .chart-view.active { display: block; }
 
         .chart-controls {
             display: flex;
@@ -290,7 +273,7 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 20px;
-            transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+            transition: all var(--transition-speed);
         }
 
         .legend-dot {
@@ -314,21 +297,12 @@
             font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
             font-weight: 500;
         }
 
         .control-btn:hover {
             border-color: var(--line-active);
             color: var(--text-primary);
-        }
-
-        .control-btn.active {
-            background: var(--accent-blue-light);
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
         }
 
         .toggle-switch {
@@ -340,9 +314,7 @@
             cursor: pointer;
         }
 
-        .toggle-switch input {
-            display: none;
-        }
+        .toggle-switch input { display: none; }
 
         .toggle-slider {
             width: 36px;
@@ -366,13 +338,8 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .toggle-switch input:checked + .toggle-slider {
-            background: var(--accent-blue);
-        }
-
-        .toggle-switch input:checked + .toggle-slider::after {
-            transform: translateX(16px);
-        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent-blue); }
+        .toggle-switch input:checked + .toggle-slider::after { transform: translateX(16px); }
 
         /* Horizontal Tree Layout */
         .org-tree {
@@ -386,19 +353,16 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+            transition: all var(--transition-speed);
         }
 
-        .org-tree:active {
-            cursor: grabbing;
-        }
+        .org-tree:active { cursor: grabbing; }
 
         .tree-container {
             transform-origin: left center;
             transition: transform 0.1s ease-out;
         }
 
-        /* Tree - Horizontal Layout */
         .tree {
             display: flex;
             flex-direction: row;
@@ -446,12 +410,6 @@
             transform: rotate(2deg);
         }
 
-        .node-card.drag-over {
-            border-color: var(--accent-blue);
-            background: var(--accent-blue-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
         .node-header {
             display: flex;
             justify-content: space-between;
@@ -470,20 +428,21 @@
         .drag-handle {
             cursor: grab;
             color: var(--text-tertiary);
-            padding: 2px;
+            padding: 4px;
             display: none;
             font-size: 14px;
             line-height: 1;
-            transition: color var(--transition-speed);
+            transition: all 0.2s;
+            border-radius: 4px;
+            user-select: none;
         }
 
-        .drag-handle:active {
-            cursor: grabbing;
+        .node-card:hover .drag-handle { display: block; }
+        .drag-handle:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
         }
-
-        .node-card:hover .drag-handle {
-            display: block;
-        }
+        .drag-handle:active { cursor: grabbing; }
 
         .node-role {
             font-size: 12px;
@@ -498,7 +457,7 @@
             margin-top: 6px;
             padding-top: 6px;
             border-top: 1px solid var(--border-light);
-            transition: color var(--transition-speed), border-color var(--transition-speed);
+            transition: all var(--transition-speed);
         }
 
         /* Collapse/Expand Button */
@@ -546,7 +505,7 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Connection Lines - Horizontal Layout */
+        /* Connection Lines */
         .children {
             display: flex;
             flex-direction: column;
@@ -563,7 +522,6 @@
             position: relative;
         }
 
-        /* Horizontal line from parent to children container */
         .horizontal-line-right {
             position: absolute;
             left: -60px;
@@ -576,7 +534,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Vertical line connector for multiple children */
         .vertical-connector {
             position: absolute;
             left: -60px;
@@ -587,7 +544,6 @@
             display: none;
         }
 
-        /* Single continuous vertical spine for each sibling group */
         .children-spine {
             position: absolute;
             left: 0;
@@ -597,42 +553,11 @@
             transition: all 0.3s ease;
         }
 
-        /* Vertical line to each child */
-        .vertical-line-to-child {
-            position: absolute;
-            left: -60px;
-            top: 50%;
-            width: 2px;
-            height: 2px;
-            background: var(--line-color);
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
+        .child-wrapper:first-of-type .vertical-connector { top: 50%; bottom: 0; }
+        .child-wrapper:last-of-type .vertical-connector { top: 0; bottom: 50%; }
+        .child-wrapper:not(:first-of-type):not(:last-of-type) .vertical-connector { top: 0; bottom: 0; }
+        .child-wrapper:only-of-type .vertical-connector { display: none; }
 
-        /* First child - top half of vertical connector */
-        .child-wrapper:first-of-type .vertical-connector {
-            top: 50%;
-            bottom: 0;
-        }
-
-        /* Last child - bottom half of vertical connector */
-        .child-wrapper:last-of-type .vertical-connector {
-            top: 0;
-            bottom: 50%;
-        }
-
-        /* Middle children - full vertical connector */
-        .child-wrapper:not(:first-of-type):not(:last-of-type) .vertical-connector {
-            top: 0;
-            bottom: 0;
-        }
-
-        /* Single child - small vertical line only */
-        .child-wrapper:only-of-type .vertical-connector {
-            display: none;
-        }
-
-        /* Children container animations */
         .children-container {
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -659,29 +584,15 @@
             box-shadow: var(--shadow-lg);
         }
 
-        .drop-target {
-            position: relative;
-        }
-
-        .drop-target::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border: 2px dashed var(--accent-blue);
-            border-radius: var(--radius-md);
-            pointer-events: none;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
         /* Reparenting drag styles */
         .reparent-dragging .node-card {
             opacity: 0.4;
             transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        /* Prevent flicker during HTML5 drag */
+        .reparent-dragging .node-card * {
+            pointer-events: none;
         }
 
         .reparent-dragging .node-card.drag-source {
@@ -697,12 +608,6 @@
             cursor: copy;
         }
 
-        .reparent-dragging .node-card.valid-drop-target:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.3), 0 0 0 4px rgba(59, 130, 246, 0.2);
-            background: var(--accent-blue-light);
-        }
-
         .reparent-dragging .node-card.invalid-drop-target {
             opacity: 0.2;
             cursor: not-allowed;
@@ -711,7 +616,7 @@
         .node-card.drag-over-valid {
             border-color: var(--accent-blue) !important;
             background: var(--accent-blue-light) !important;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 8px 25px -5px rgba(59, 130, 246, 0.4) !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3) !important;
             transform: translateY(-3px) scale(1.03) !important;
         }
 
@@ -726,75 +631,12 @@
             background: #450a0a !important;
         }
 
-        /* Drop indicator line */
-        .drop-indicator {
-            position: fixed;
-            pointer-events: none;
-            z-index: 1000;
-            background: var(--accent-blue);
-            border-radius: 2px;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        .drop-indicator.active {
-            opacity: 1;
-        }
-
-        /* Drag handle improvements */
-        .drag-handle {
-            cursor: grab;
-            color: var(--text-tertiary);
-            padding: 4px;
-            display: none;
-            font-size: 14px;
-            line-height: 1;
-            transition: all 0.2s;
-            border-radius: 4px;
-            user-select: none;
-        }
-
-        .drag-handle:hover {
-            background: var(--bg-tertiary);
-            color: var(--accent-blue);
-        }
-
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-
-        /* Focus Mode */
-        .focus-mode .node-card {
-            opacity: 0.4;
-            transform: scale(0.95);
-            transition: all 0.3s ease;
-        }
-
-        .focus-mode .node-card.focused {
-            opacity: 1;
-            transform: scale(1);
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        .focus-mode .node-card.focused-child {
-            opacity: 1;
-            transform: scale(1);
-        }
-
         /* Hover expand preview */
-        .hover-expand-preview .children-container {
-            opacity: 0.7;
-        }
+        .hover-expand-preview .children-container { opacity: 0.7; }
 
         /* Edit View */
-        .edit-view {
-            display: none;
-        }
-
-        .edit-view.active {
-            display: block;
-        }
+        .edit-view { display: none; }
+        .edit-view.active { display: block; }
 
         .edit-layout {
             display: grid;
@@ -802,29 +644,29 @@
             gap: 24px;
         }
 
-        .form-panel {
+        .form-panel, .list-panel {
             background: var(--bg-secondary);
             border-radius: var(--radius-lg);
             padding: 24px;
             border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-speed);
+        }
+
+        .form-panel {
             height: fit-content;
             position: sticky;
             top: 90px;
-            box-shadow: var(--shadow-sm);
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
-        .form-panel h2 {
+        .form-panel h2, .list-panel h2 {
             font-size: 16px;
             margin-bottom: 20px;
             color: var(--text-primary);
             font-weight: 600;
-            transition: color var(--transition-speed);
         }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+        .form-group { margin-bottom: 16px; }
 
         .form-group label {
             display: block;
@@ -834,12 +676,9 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 500;
-            transition: color var(--transition-speed);
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px 12px;
             background: var(--bg-primary);
@@ -851,19 +690,14 @@
             font-family: inherit;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: var(--accent-blue);
             background: var(--bg-secondary);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
 
         .btn {
             padding: 10px 16px;
@@ -883,9 +717,7 @@
             color: var(--bg-secondary);
         }
 
-        .btn-primary:hover {
-            background: var(--text-secondary);
-        }
+        .btn-primary:hover { background: var(--text-secondary); }
 
         .btn-secondary {
             background: var(--bg-tertiary);
@@ -908,40 +740,6 @@
             background: #450a0a;
             color: #fca5a5;
             border: 1px solid #7f1d1d;
-        }
-
-        .btn-danger:hover {
-            background: #fee2e2;
-        }
-
-        [data-theme="dark"] .btn-danger:hover {
-            background: #7f1d1d;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-group .btn {
-            flex: 1;
-        }
-
-        .list-panel {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
-        }
-
-        .list-panel h2 {
-            font-size: 16px;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-            font-weight: 600;
-            transition: color var(--transition-speed);
         }
 
         .person-list {
@@ -977,13 +775,11 @@
             color: var(--text-primary);
             margin-bottom: 2px;
             font-weight: 500;
-            transition: color var(--transition-speed);
         }
 
         .person-info p {
             font-size: 12px;
             color: var(--text-tertiary);
-            transition: color var(--transition-speed);
         }
 
         .person-actions {
@@ -1012,29 +808,10 @@
             color: var(--text-primary);
         }
 
-        .icon-btn.delete:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        [data-theme="dark"] .icon-btn.delete:hover {
-            background: #450a0a;
-            color: #fca5a5;
-        }
-
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-tertiary);
-            transition: color var(--transition-speed);
-        }
-
-        .empty-state h3 {
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            transition: color var(--transition-speed);
         }
 
         .zoom-controls {
@@ -1050,7 +827,6 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-lg);
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .zoom-btn {
@@ -1077,7 +853,6 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
-            transition: border-color var(--transition-speed);
         }
 
         .role-types-section h3 {
@@ -1085,9 +860,7 @@
             color: var(--text-secondary);
             margin-bottom: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             font-weight: 600;
-            transition: color var(--transition-speed);
         }
 
         .role-type-item {
@@ -1105,7 +878,6 @@
             border-radius: var(--radius-sm);
             color: var(--text-primary);
             font-size: 13px;
-            transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
         }
 
         .role-type-item input[type="color"] {
@@ -1116,11 +888,6 @@
             cursor: pointer;
             background: transparent;
             padding: 0;
-        }
-
-        .role-type-item .icon-btn {
-            width: 24px;
-            height: 24px;
         }
 
         .add-role-btn {
@@ -1143,190 +910,6 @@
             background: var(--accent-blue-light);
         }
 
-        /* Desktop wide screen optimizations */
-        @media (min-width: 1400px) {
-            .container {
-                padding: 12px 32px;
-            }
-
-            .org-tree {
-                height: calc(100vh - 160px);
-                padding: 16px;
-            }
-
-            .node-card {
-                min-width: 200px;
-                max-width: 280px;
-                padding: 16px 22px;
-            }
-        }
-
-        /* Extra wide screens */
-        @media (min-width: 1920px) {
-            .container {
-                padding: 10px 40px;
-            }
-
-            .org-tree {
-                height: calc(100vh - 150px);
-                padding: 12px;
-            }
-
-            .node-card {
-                min-width: 220px;
-                max-width: 300px;
-                padding: 18px 24px;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .edit-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .form-panel {
-                position: static;
-            }
-
-            .header-actions {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .file-actions {
-                order: 2;
-                width: 100%;
-            }
-
-            .org-tree {
-                height: calc(100vh - 220px);
-                padding: 16px;
-            }
-
-            /* Mobile vertical layout */
-            .tree {
-                flex-direction: column;
-            }
-
-            .tree-node {
-                flex-direction: column;
-            }
-
-            .children {
-                flex-direction: column;
-                padding-left: 0;
-                padding-top: 40px;
-            }
-
-            .child-wrapper {
-                flex-direction: column;
-                padding: 10px 0;
-            }
-
-            /* Hide horizontal lines on mobile */
-            .horizontal-line-right,
-            .vertical-connector,
-            .vertical-line-to-child,
-            .children-spine {
-                display: none;
-            }
-        }
-
-        /* Print Styles */
-        @media print {
-            body {
-                background: white;
-                color: black;
-            }
-
-            .header {
-                background: white;
-                border-bottom: 1px solid #ccc;
-                color: black;
-            }
-
-            .company-name {
-                color: black !important;
-                background: transparent !important;
-            }
-
-            .header span {
-                color: #666;
-            }
-
-            .file-actions,
-            .export-actions,
-            .tabs,
-            .zoom-controls,
-            #editView,
-            .icon-btn {
-                display: none !important;
-            }
-
-            .container {
-                padding: 10px;
-                max-width: 100%;
-            }
-
-            .chart-view {
-                display: block !important;
-            }
-
-            .org-tree {
-                height: auto;
-                overflow: visible;
-                cursor: default;
-            }
-
-            .tree-container {
-                transform: none !important;
-            }
-
-            .node-card {
-                background: white !important;
-                border: 2px solid #333 !important;
-                box-shadow: none !important;
-                color: black !important;
-            }
-
-            .node-name {
-                color: black !important;
-            }
-
-            .node-role {
-                color: #444 !important;
-            }
-
-            .node-domain {
-                color: #666 !important;
-                border-top-color: #ccc !important;
-            }
-
-            .legend {
-                margin-bottom: 20px;
-            }
-
-            .legend-item {
-                color: #333;
-            }
-
-            /* Connection lines for print */
-            .horizontal-line-right,
-            .vertical-connector,
-            .children-spine,
-            .vertical-line-to-child {
-                background: #999 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            /* Ensure background colors print */
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-        }
-
         /* Export notification */
         .export-notification {
             position: fixed;
@@ -1342,13 +925,34 @@
         }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 900px) {
+            .edit-layout { grid-template-columns: 1fr; }
+            .form-panel { position: static; }
+            .header-actions { flex-wrap: wrap; gap: 10px; }
+            .file-actions { order: 2; width: 100%; }
+            .org-tree { height: calc(100vh - 220px); padding: 16px; }
+            .tree, .tree-node, .children, .child-wrapper { flex-direction: column; }
+            .children { padding-left: 0; padding-top: 40px; }
+            .horizontal-line-right, .vertical-connector, .vertical-line-to-child, .children-spine { display: none; }
+        }
+
+        @media print {
+            body, .header { background: white; color: black; }
+            .company-name { color: black !important; background: transparent !important; }
+            .file-actions, .export-actions, .tabs, .zoom-controls, #editView, .icon-btn { display: none !important; }
+            .container { padding: 10px; max-width: 100%; }
+            .chart-view { display: block !important; }
+            .org-tree { height: auto; overflow: visible; cursor: default; border: none; }
+            .tree-container { transform: none !important; }
+            .node-card { background: white !important; border: 2px solid #333 !important; box-shadow: none !important; color: black !important; }
+            .horizontal-line-right, .vertical-connector, .children-spine, .vertical-line-to-child { 
+                background: #999 !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
             }
         }
     </style>
@@ -1360,7 +964,6 @@
             <span>Organizational Accountability Chart</span>
         </div>
         <div class="header-actions">
-            <!-- Theme Toggle -->
             <label class="theme-toggle" title="Toggle Dark Mode">
                 <span class="theme-icon">☀️</span>
                 <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
@@ -1490,28 +1093,57 @@
     </div>
 
     <script>
+        // --- SECURITY PATCH: XSS Prevention ---
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag])
+            );
+        }
+
         const defaultRoleTypes = [
             { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
             { id: 'ai-agent', name: 'AI Agent', color: '#10b981' },
             { id: 'human', name: 'Human Team', color: '#3b82f6' }
         ];
 
-        let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
-        let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
-        let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
+        const defaultPeople = [
             { id: 1, name: "Nathaniel", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
             { id: 2, name: "Belisarius", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
             { id: 3, name: "Ghost", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
             { id: 4, name: "Ironhide", role: "Maintenance Ops", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
         ];
 
+        // --- BULLETPROOF DATA LOADER ---
+        // Completely protects against corrupted cache causing instant crashes
+        let localRoleTypes = null;
+        let localPeople = null;
+        let localCollapsed = null;
+
+        try {
+            localRoleTypes = JSON.parse(localStorage.getItem('org_chart_role_types'));
+            localPeople = JSON.parse(localStorage.getItem('org_chart_people'));
+            localCollapsed = JSON.parse(localStorage.getItem('org_chart_collapsed'));
+        } catch(e) {
+            console.warn("Storage cache was corrupted. Booting with defaults.");
+        }
+
+        // Only accept the cached data if it successfully parsed as an actual Array
+        let roleTypes = (Array.isArray(localRoleTypes) && localRoleTypes.length > 0) ? localRoleTypes : defaultRoleTypes;
+        let people = (Array.isArray(localPeople) && localPeople.length > 0) ? localPeople : defaultPeople;
+        let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
+        
         let editingId = null;
-        let collapsedNodes = new Set();
+        let collapsedNodes = new Set(Array.isArray(localCollapsed) ? localCollapsed : []);
         let hoverExpandEnabled = false;
         let hoverExpandTimeout = null;
         let sortableInstances = [];
-
-        // Theme management
         let currentTheme = localStorage.getItem('org_chart_theme') || 'light';
 
         function initTheme() {
@@ -1532,16 +1164,8 @@
             localStorage.setItem('org_chart_collapsed', JSON.stringify([...collapsedNodes]));
         }
 
-        function loadCollapsedState() {
-            const saved = localStorage.getItem('org_chart_collapsed');
-            if (saved) {
-                collapsedNodes = new Set(JSON.parse(saved));
-            }
-        }
-
         function init() {
             initTheme();
-            loadCollapsedState();
             document.getElementById('companyName').value = companyName;
             renderRoleTypes();
             updateTypeSelect();
@@ -1576,10 +1200,9 @@
             let html = roleTypes.map(rt => `
                 <div class="legend-item">
                     <div class="legend-dot" style="background: ${rt.color}"></div>
-                    <span>${rt.name}</span>
+                    <span>${escapeHTML(rt.name)}</span>
                 </div>
             `).join('');
-            // Add drag hint
             html += `
                 <div class="legend-item" title="Drag the handle (⋮⋮) on any node to move it to a different parent">
                     <span style="font-size: 10px; margin-right: 4px;">⋮⋮</span>
@@ -1591,12 +1214,10 @@
 
         function buildTree() {
             const root = people.filter(p => !p.reportsTo);
-            
             function addChildren(parent) {
                 const children = people.filter(p => p.reportsTo === parent.id);
                 return { ...parent, children: children.map(addChildren) };
             }
-            
             return root.map(addChildren);
         }
 
@@ -1605,7 +1226,6 @@
             return type ? type.color : '#3b82f6';
         }
 
-        // Render tree node with horizontal layout and proper connection lines
         function renderTreeNode(node, level = 0, isRoot = true) {
             const hasChildren = node.children && node.children.length > 0;
             const nodeColor = getTypeColor(node.type);
@@ -1615,16 +1235,18 @@
             let nodeHtml = `
                 <div class="node-content" data-node-id="${node.id}">
                     <div class="node-card" style="--node-color: ${nodeColor}" 
+                         draggable="true" 
+                         ondragstart="handleDragStart(event, ${node.id})"
                          onclick="selectPerson(${node.id})"
                          onmouseenter="handleNodeHover(${node.id}, true)"
                          onmouseleave="handleNodeHover(${node.id}, false)">
                         ${hasChildren && isCollapsed ? `<div class="child-count-badge">${node.children.length}</div>` : ''}
                         <div class="node-header">
-                            <div class="node-name">${node.name}</div>
-                            <div class="drag-handle" draggable="true" ondragstart="handleDragStart(event, ${node.id})" title="Drag to reorder">⋮⋮</div>
+                            <div class="node-name">${escapeHTML(node.name)}</div>
+                            <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
                         </div>
-                        <div class="node-role">${node.role}</div>
-                        ${node.domain ? `<div class="node-domain">${node.domain}</div>` : ''}
+                        <div class="node-role">${escapeHTML(node.role)}</div>
+                        ${node.domain ? `<div class="node-domain">${escapeHTML(node.domain)}</div>` : ''}
                         ${hasChildren ? `
                             <button class="collapse-btn" onclick="event.stopPropagation(); toggleCollapse(${node.id})" title="${isCollapsed ? 'Expand' : 'Collapse'}">
                                 ${isCollapsed ? '+' : '−'}
@@ -1648,7 +1270,6 @@
                 });
                 childrenHtml += `</div></div>`;
             }
-            
             return `<div class="tree-node ${isRoot ? 'root-node' : ''}" data-node-id="${node.id}">${nodeHtml}${childrenHtml}</div>`;
         }
 
@@ -1662,39 +1283,40 @@
         let panZoomListenersAttached = false;
 
         function renderTree() {
-            // Clean up old Sortable instances
-            sortableInstances.forEach(s => s.destroy());
-            sortableInstances = [];
-            
-            const tree = buildTree();
-            const container = document.getElementById('orgTree');
-            
-            if (tree.length === 0) {
-                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3><p>Switch to Edit People to add your team</p></div>`;
-                return;
+            try {
+                sortableInstances.forEach(s => s.destroy());
+                sortableInstances = [];
+                
+                const tree = buildTree();
+                const container = document.getElementById('orgTree');
+                
+                if (tree.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3><p>Switch to Edit People to add your team</p></div>`;
+                    return;
+                }
+                
+                container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(n => renderTreeNode(n, 0, true)).join('') + '</div></div>';
+                
+                applyTransform();
+                updateChildrenSpines();
+                setupPanZoom();
+                initDragAndDrop();
+            } catch(e) {
+                console.error("Failed to render tree", e);
+                document.getElementById('orgTree').innerHTML = `<div class="empty-state"><h3>Display Error</h3><p>We hit a snag drawing the chart. Please check the "Edit People" tab to ensure no data is corrupted.</p></div>`;
             }
-            
-            container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(n => renderTreeNode(n, 0, true)).join('') + '</div></div>';
-            
-            applyTransform();
-            updateChildrenSpines();
-            setupPanZoom();
-            initDragAndDrop();
         }
 
         function updateChildrenSpines() {
             document.querySelectorAll('.children').forEach(childrenEl => {
                 childrenEl.querySelectorAll('.children-spine').forEach(spine => spine.remove());
-
                 const wrappers = childrenEl.querySelectorAll(':scope > .child-wrapper');
                 if (wrappers.length <= 1) return;
-
                 const first = wrappers[0];
                 const last = wrappers[wrappers.length - 1];
                 const firstCenter = first.offsetTop + (first.offsetHeight / 2);
                 const lastCenter = last.offsetTop + (last.offsetHeight / 2);
                 const height = Math.max(0, lastCenter - firstCenter);
-
                 const spine = document.createElement('div');
                 spine.className = 'children-spine';
                 spine.style.top = `${firstCenter}px`;
@@ -1751,16 +1373,13 @@
             });
         }
 
-        // Collapse/Expand Functions
         function toggleCollapse(nodeId, event) {
             if (event) event.stopPropagation();
-            
             if (collapsedNodes.has(nodeId)) {
                 collapsedNodes.delete(nodeId);
             } else {
                 collapsedNodes.add(nodeId);
             }
-            
             saveData();
             renderTree();
         }
@@ -1786,7 +1405,6 @@
 
         function handleNodeHover(nodeId, isHovering) {
             if (!hoverExpandEnabled) return;
-            
             if (isHovering && collapsedNodes.has(nodeId)) {
                 hoverExpandTimeout = setTimeout(() => {
                     collapsedNodes.delete(nodeId);
@@ -1799,18 +1417,10 @@
             }
         }
 
-        // Drag and Drop with SortableJS - handles sibling reordering only
         function initDragAndDrop() {
-            // Initialize Sortable on each children container for sibling reordering
-            document.querySelectorAll('.children').forEach(container => {
-                const parentId = container.dataset.childrenOf ? parseInt(container.dataset.childrenOf) : null;
-
+            document.querySelectorAll('.children, .tree').forEach(container => {
                 const sortable = new Sortable(container, {
-                    group: {
-                        name: 'nested',
-                        pull: false,  // Disable pulling - reparenting is done via HTML5 DnD
-                        put: false    // Disable putting - reparenting is done via HTML5 DnD
-                    },
+                    group: { name: 'nested', pull: false, put: false },
                     animation: 200,
                     handle: '.drag-handle',
                     ghostClass: 'sortable-ghost',
@@ -1822,19 +1432,16 @@
                         const card = evt.item.closest('.node-card');
                         if (card) card.classList.remove('dragging');
 
-                        const nodeId = parseInt(evt.item.dataset.childId);
+                        const nodeId = parseInt(evt.item.dataset.childId || evt.item.dataset.nodeId);
                         const newParentId = evt.to.dataset.childrenOf ? parseInt(evt.to.dataset.childrenOf) : null;
 
-                        // Only handle reordering within the same parent
                         if (nodeId && newParentId !== undefined) {
                             const node = people.find(p => p.id === nodeId);
                             if (node) {
-                                // Reorder siblings based on DOM order
                                 const newOrder = Array.from(evt.to.children).map(child =>
-                                    parseInt(child.dataset.childId)
+                                    parseInt(child.dataset.childId || child.dataset.nodeId)
                                 );
 
-                                // Persist sibling order in the backing array
                                 const siblings = people.filter(p => p.reportsTo === newParentId);
                                 const siblingsById = new Map(siblings.map(s => [s.id, s]));
                                 const orderedSiblings = newOrder
@@ -1855,19 +1462,15 @@
                                 });
 
                                 saveData();
-                                // Don't re-render to preserve the new order visually
                             }
                         }
                     }
                 });
-
                 sortableInstances.push(sortable);
             });
         }
 
-        // Drag to Reparent functionality
         let draggedNodeId = null;
-        let draggedNodeData = null;
         let dragSourceElement = null;
 
         function getAllDescendantIds(nodeId) {
@@ -1881,54 +1484,37 @@
         }
 
         function canReparent(nodeId, targetId) {
-            // Can't drop on itself
             if (nodeId === targetId) return false;
-            // Can't drop on its own descendants (would create cycle)
             if (isDescendant(nodeId, targetId)) return false;
-            // Get current parent
             const node = people.find(p => p.id === nodeId);
-            if (!node) return false;
-            // Can't drop on same parent (that's reordering, handled by SortableJS)
-            if (node.reportsTo === targetId) return false;
+            if (!node || node.reportsTo === targetId) return false;
             return true;
         }
 
         function handleDragStart(event, nodeId) {
             event.stopPropagation();
             draggedNodeId = nodeId;
-            draggedNodeData = people.find(p => p.id === nodeId);
             dragSourceElement = event.target.closest('.node-card');
 
             event.dataTransfer.effectAllowed = 'move';
             event.dataTransfer.setData('text/plain', nodeId);
 
-            // Add global dragging state
             document.body.classList.add('reparent-dragging');
             document.getElementById('orgTree').classList.add('reparent-drag-active');
 
-            // Get all descendant IDs for invalid targeting
             const descendantIds = getAllDescendantIds(nodeId);
 
-            // Mark all cards with appropriate classes
             document.querySelectorAll('.node-card').forEach(card => {
                 const cardNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
-
                 if (cardNodeId === nodeId) {
-                    // The source node being dragged
                     card.classList.add('drag-source');
-                } else if (descendantIds.includes(cardNodeId)) {
-                    // Can't drop on descendants
-                    card.classList.add('invalid-drop-target');
-                } else if (!canReparent(nodeId, cardNodeId)) {
-                    // Other invalid targets (same parent, etc)
+                } else if (descendantIds.includes(cardNodeId) || !canReparent(nodeId, cardNodeId)) {
                     card.classList.add('invalid-drop-target');
                 } else {
-                    // Valid drop target
                     card.classList.add('valid-drop-target');
                 }
             });
 
-            // Set custom drag image if possible
             if (dragSourceElement) {
                 const rect = dragSourceElement.getBoundingClientRect();
                 event.dataTransfer.setDragImage(dragSourceElement, event.clientX - rect.left, event.clientY - rect.top);
@@ -1942,23 +1528,15 @@
                 card.classList.remove('drag-source', 'valid-drop-target', 'invalid-drop-target', 'drag-over-valid', 'drag-over-invalid');
             });
             draggedNodeId = null;
-            draggedNodeData = null;
             dragSourceElement = null;
         }
 
-        // Global dragover handler for drop target highlighting
         document.addEventListener('dragover', function(e) {
             if (!draggedNodeId) return;
-
             const card = e.target.closest('.node-card');
-            if (!card) return;
-
-            // Don't allow dropping on the drag handle itself
-            if (e.target.closest('.drag-handle')) return;
+            if (!card || e.target.closest('.drag-handle')) return;
 
             const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
-
-            // Check if this is a valid drop
             if (canReparent(draggedNodeId, targetNodeId)) {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
@@ -1973,49 +1551,35 @@
 
         document.addEventListener('dragleave', function(e) {
             const card = e.target.closest('.node-card');
-            if (card) {
-                card.classList.remove('drag-over-valid', 'drag-over-invalid');
-            }
+            if (card) card.classList.remove('drag-over-valid', 'drag-over-invalid');
         });
 
         document.addEventListener('drop', function(e) {
             if (!draggedNodeId) return;
-
             const card = e.target.closest('.node-card');
             if (card) {
                 const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
-
                 if (canReparent(draggedNodeId, targetNodeId)) {
                     e.preventDefault();
                     e.stopPropagation();
-
-                    // Perform the reparenting
                     const node = people.find(p => p.id === draggedNodeId);
                     if (node) {
-                        const oldParent = node.reportsTo;
                         node.reportsTo = targetNodeId;
                         saveData();
                         renderTree();
-
-                        // Show feedback (optional - could add toast notification here)
-                        console.log(`Moved ${node.name} to report to ${people.find(p => p.id === targetNodeId)?.name || 'root'}`);
                     }
                 }
             }
-
             clearDragState();
         });
 
-        // Clear state on drag end (handles case where drop doesn't occur)
         document.addEventListener('dragend', function(e) {
-            if (draggedNodeId) {
-                clearDragState();
-            }
+            if (draggedNodeId) clearDragState();
         });
 
         function updateTypeSelect() {
             const select = document.getElementById('type');
-            select.innerHTML = roleTypes.map(rt => `<option value="${rt.id}">${rt.name}</option>`).join('');
+            select.innerHTML = roleTypes.map(rt => `<option value="${rt.id}">${escapeHTML(rt.name)}</option>`).join('');
         }
 
         function updateReportsToOptions() {
@@ -2024,7 +1588,7 @@
             let html = '<option value="">None (Top Level)</option>';
             people.forEach(p => {
                 if (p.id !== currentId && !isDescendant(currentId, p.id)) {
-                    html += `<option value="${p.id}">${p.name} - ${p.role}</option>`;
+                    html += `<option value="${p.id}">${escapeHTML(p.name)} - ${escapeHTML(p.role)}</option>`;
                 }
             });
             select.innerHTML = html;
@@ -2044,7 +1608,7 @@
             container.innerHTML = roleTypes.map((rt, idx) => `
                 <div class="role-type-item">
                     <input type="color" value="${rt.color}" onchange="updateRoleTypeColor(${idx}, this.value)">
-                    <input type="text" value="${rt.name}" onchange="updateRoleTypeName(${idx}, this.value)" placeholder="Type name">
+                    <input type="text" value="${escapeHTML(rt.name)}" onchange="updateRoleTypeName(${idx}, this.value)" placeholder="Type name">
                     <button class="icon-btn delete" onclick="removeRoleType(${idx})">✕</button>
                 </div>
             `).join('');
@@ -2081,8 +1645,8 @@
                 return `
                     <div class="person-item ${editingId === p.id ? 'selected' : ''}" onclick="editPerson(${p.id})">
                         <div class="person-info">
-                            <h3>${p.name}</h3>
-                            <p>${p.role}${p.domain ? ` • ${p.domain}` : ''}${reportsTo ? ` → reports to ${reportsTo.name}` : ''}</p>
+                            <h3>${escapeHTML(p.name)}</h3>
+                            <p>${escapeHTML(p.role)}${p.domain ? ` • ${escapeHTML(p.domain)}` : ''}${reportsTo ? ` → reports to ${escapeHTML(reportsTo.name)}` : ''}</p>
                         </div>
                         <div class="person-actions">
                             <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${type?.color || '#3b82f6'};margin-right:8px;"></span>
@@ -2112,7 +1676,7 @@
             } else {
                 people.push(personData);
             }
-            saveData(); resetForm(); renderList(); updateReportsToOptions();
+            saveData(); resetForm(); renderList(); updateReportsToOptions(); renderTree();
         });
 
         function editPerson(id) {
@@ -2147,7 +1711,7 @@
                 people.forEach(p => { if (p.reportsTo === id) p.reportsTo = null; });
                 people = people.filter(p => p.id !== id);
                 collapsedNodes.delete(id);
-                saveData(); resetForm(); renderList();
+                saveData(); resetForm(); renderList(); renderTree();
             }
         }
 
@@ -2166,61 +1730,40 @@
         }
 
         function printChart() {
-            // Switch to chart view if not already there
             showView('chart');
-            // Small delay to ensure rendering is complete
-            setTimeout(() => {
-                window.print();
-            }, 100);
+            setTimeout(() => { window.print(); }, 100);
         }
 
-        async function exportPNG() {
-            // Make sure we're in chart view
+       async function exportPNG() {
             showView('chart');
-
             const treeContainer = document.getElementById('orgTree');
-            if (!treeContainer) {
-                alert('No chart to export');
-                return;
-            }
+            if (!treeContainer) { alert('No chart to export'); return; }
 
-            // Show loading notification
             showNotification('Generating PNG...');
 
             try {
-                // Get computed styles for line colors
                 const lineColor = getComputedStyle(document.body).getPropertyValue('--line-color').trim() || '#d4d4d8';
                 const bgColor = getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() || '#fafafa';
 
-                // Get the actual tree content
                 const treeEl = document.getElementById('treeContainer');
                 const actualTree = treeEl || treeContainer;
 
-                // Create a cloned container for capture to avoid overflow issues
                 const cloneContainer = document.createElement('div');
-                cloneContainer.style.cssText = `
-                    position: absolute;
-                    left: -9999px;
-                    top: 0;
-                    background: ${bgColor};
-                    padding: 40px;
-                    overflow: visible;
-                `;
+                cloneContainer.style.cssText = `position: absolute; left: -9999px; top: 0; background: ${bgColor}; padding: 40px; overflow: visible;`;
 
-                // Clone the tree and reset its transform
                 const clonedTree = actualTree.cloneNode(true);
                 clonedTree.style.transform = 'none';
                 clonedTree.style.position = 'relative';
 
-                // Fix connection lines in clone - set explicit background colors
+                // --- BUG FIX: Strip collapsed nodes from the clone ---
+                // This prevents html2canvas from calculating massive phantom heights from squished invisible text
+                clonedTree.querySelectorAll('.children-container.collapsed').forEach(el => el.remove());
+
                 const lineSelectors = ['.horizontal-line-right', '.vertical-connector', '.children-spine', '.vertical-line-to-child'];
                 lineSelectors.forEach(selector => {
-                    clonedTree.querySelectorAll(selector).forEach(el => {
-                        el.style.background = lineColor;
-                    });
+                    clonedTree.querySelectorAll(selector).forEach(el => { el.style.background = lineColor; });
                 });
 
-                // Add legend to the clone
                 const legend = document.getElementById('legend');
                 if (legend && legend.innerHTML.trim()) {
                     const clonedLegend = legend.cloneNode(true);
@@ -2231,31 +1774,17 @@
                 cloneContainer.appendChild(clonedTree);
                 document.body.appendChild(cloneContainer);
 
-                // Calculate the full bounds of the cloned tree
-                const fullWidth = clonedTree.scrollWidth + 80; // +padding
+                const fullWidth = clonedTree.scrollWidth + 80;
                 const fullHeight = clonedTree.scrollHeight + (legend ? 80 : 40);
 
-                // Capture the clone with full dimensions
                 const canvas = await html2canvas(cloneContainer, {
-                    backgroundColor: bgColor,
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    width: fullWidth,
-                    height: fullHeight,
-                    x: 0,
-                    y: 0,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: fullWidth,
-                    windowHeight: fullHeight
+                    backgroundColor: bgColor, scale: 2, useCORS: true, allowTaint: true, logging: false,
+                    width: fullWidth, height: fullHeight, x: 0, y: 0, scrollX: 0, scrollY: 0,
+                    windowWidth: fullWidth, windowHeight: fullHeight
                 });
 
-                // Clean up the clone
                 document.body.removeChild(cloneContainer);
 
-                // Convert to PNG and download
                 const pngUrl = canvas.toDataURL('image/png');
                 const date = new Date().toISOString().split('T')[0];
                 const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
@@ -2273,15 +1802,10 @@
                 alert('Failed to export PNG. Please try again.');
             }
         }
-
         function exportData() {
             const data = { 
-                version: '2.0', 
-                exportedAt: new Date().toISOString(), 
-                companyName: companyName, 
-                roleTypes: roleTypes, 
-                people: people,
-                collapsedNodes: [...collapsedNodes]
+                version: '2.0', exportedAt: new Date().toISOString(), companyName: companyName, 
+                roleTypes: roleTypes, people: people, collapsedNodes: [...collapsedNodes]
             };
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
@@ -2306,9 +1830,7 @@
                     companyName = data.companyName || 'Organization';
                     roleTypes = data.roleTypes || defaultRoleTypes;
                     people = data.people;
-                    if (data.collapsedNodes) {
-                        collapsedNodes = new Set(data.collapsedNodes);
-                    }
+                    if (data.collapsedNodes) collapsedNodes = new Set(data.collapsedNodes);
                     saveData(); init();
                 } catch (err) { alert('Error: ' + err.message); }
                 input.value = '';
