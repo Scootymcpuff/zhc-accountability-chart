@@ -578,6 +578,17 @@
             background: var(--line-color);
             pointer-events: none;
             transition: all 0.3s ease;
+            display: none;
+        }
+
+        /* Single continuous vertical spine for each sibling group */
+        .children-spine {
+            position: absolute;
+            left: 0;
+            width: 2px;
+            background: var(--line-color);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
         /* Vertical line to each child */
@@ -1209,7 +1220,8 @@
             /* Hide horizontal lines on mobile */
             .horizontal-line-right,
             .vertical-connector,
-            .vertical-line-to-child {
+            .vertical-line-to-child,
+            .children-spine {
                 display: none;
             }
         }
@@ -1483,13 +1495,10 @@
                 childrenHtml += `<div class="children-container ${isCollapsed ? 'collapsed' : ''}" data-parent-id="${node.id}">`;
                 childrenHtml += `<div class="children" data-children-of="${node.id}">`;
                 node.children.forEach((child, index) => {
-                    const isFirst = index === 0;
-                    const isLast = index === node.children.length - 1;
-                    
                     childrenHtml += `
                         <div class="child-wrapper" data-child-id="${child.id}">
                             <div class="horizontal-line-right"></div>
-                            ${multipleChildren ? `<div class="vertical-connector" style="${isFirst ? 'top: 50%;' : isLast ? 'bottom: 50%;' : 'top: 0; bottom: 0;'}"></div>` : ''}
+                            ${multipleChildren ? `<div class="vertical-connector"></div>` : ''}
                             ${renderTreeNode(child, level + 1, false)}
                         </div>`;
                 });
@@ -1524,8 +1533,30 @@
             container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(n => renderTreeNode(n, 0, true)).join('') + '</div></div>';
             
             applyTransform();
+            updateChildrenSpines();
             setupPanZoom();
             initDragAndDrop();
+        }
+
+        function updateChildrenSpines() {
+            document.querySelectorAll('.children').forEach(childrenEl => {
+                childrenEl.querySelectorAll('.children-spine').forEach(spine => spine.remove());
+
+                const wrappers = childrenEl.querySelectorAll(':scope > .child-wrapper');
+                if (wrappers.length <= 1) return;
+
+                const first = wrappers[0];
+                const last = wrappers[wrappers.length - 1];
+                const firstCenter = first.offsetTop + (first.offsetHeight / 2);
+                const lastCenter = last.offsetTop + (last.offsetHeight / 2);
+                const height = Math.max(0, lastCenter - firstCenter);
+
+                const spine = document.createElement('div');
+                spine.className = 'children-spine';
+                spine.style.top = `${firstCenter}px`;
+                spine.style.height = `${height}px`;
+                childrenEl.appendChild(spine);
+            });
         }
 
         function applyTransform() {
