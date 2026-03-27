@@ -13,6 +13,7 @@
         }
 
         :root {
+            /* Light mode (default) */
             --bg-primary: #fafafa;
             --bg-secondary: #ffffff;
             --bg-tertiary: #f4f4f5;
@@ -31,6 +32,26 @@
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 16px;
+            --transition-speed: 0.3s;
+        }
+
+        /* Dark mode */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --border-color: #475569;
+            --border-light: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --accent-blue: #60a5fa;
+            --accent-blue-light: #1e3a5f;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+            --line-color: #475569;
+            --line-active: #64748b;
         }
 
         body {
@@ -39,6 +60,7 @@
             color: var(--text-primary);
             min-height: 100vh;
             line-height: 1.5;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
         .header {
@@ -51,6 +73,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .header-left {
@@ -69,6 +92,7 @@
             font-family: inherit;
             width: auto;
             min-width: 200px;
+            transition: color var(--transition-speed);
         }
 
         .company-name:hover {
@@ -89,6 +113,7 @@
         .header span {
             color: var(--text-tertiary);
             font-size: 13px;
+            transition: color var(--transition-speed);
         }
 
         .header-actions {
@@ -134,6 +159,7 @@
             background: var(--bg-tertiary);
             padding: 4px;
             border-radius: var(--radius-md);
+            transition: background-color var(--transition-speed);
         }
 
         .tab {
@@ -156,6 +182,66 @@
             background: var(--bg-secondary);
             color: var(--text-primary);
             box-shadow: var(--shadow-sm);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--line-active);
+        }
+
+        .theme-toggle input {
+            display: none;
+        }
+
+        .theme-slider {
+            width: 44px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 24px;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .theme-slider::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .theme-toggle input:checked + .theme-slider {
+            background: var(--accent-blue);
+        }
+
+        .theme-toggle input:checked + .theme-slider::after {
+            transform: translateX(20px);
+        }
+
+        .theme-icon {
+            font-size: 14px;
+            color: var(--text-secondary);
         }
 
         .container {
@@ -198,6 +284,7 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 20px;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
         }
 
         .legend-dot {
@@ -281,9 +368,10 @@
             transform: translateX(16px);
         }
 
+        /* Horizontal Tree Layout */
         .org-tree {
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             padding: 40px;
             overflow: hidden;
             position: relative;
@@ -292,6 +380,7 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .org-tree:active {
@@ -299,19 +388,20 @@
         }
 
         .tree-container {
-            transform-origin: top center;
+            transform-origin: left center;
             transition: transform 0.1s ease-out;
         }
 
+        /* Tree - Horizontal Layout */
         .tree {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
         }
 
         .tree-node {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             position: relative;
         }
@@ -319,6 +409,9 @@
         .node-content {
             position: relative;
             z-index: 2;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
         }
 
         .node-card {
@@ -365,6 +458,7 @@
             font-weight: 600;
             color: var(--text-primary);
             line-height: 1.3;
+            transition: color var(--transition-speed);
         }
 
         .drag-handle {
@@ -374,6 +468,7 @@
             display: none;
             font-size: 14px;
             line-height: 1;
+            transition: color var(--transition-speed);
         }
 
         .drag-handle:active {
@@ -388,6 +483,7 @@
             font-size: 12px;
             color: var(--text-secondary);
             margin-bottom: 2px;
+            transition: color var(--transition-speed);
         }
 
         .node-domain {
@@ -396,14 +492,15 @@
             margin-top: 6px;
             padding-top: 6px;
             border-top: 1px solid var(--border-light);
+            transition: color var(--transition-speed), border-color var(--transition-speed);
         }
 
         /* Collapse/Expand Button */
         .collapse-btn {
             position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 20px;
             height: 20px;
             background: var(--bg-secondary);
@@ -443,83 +540,78 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Connection Lines - Explicit DOM Elements */
+        /* Connection Lines - Horizontal Layout */
         .children {
             display: flex;
+            flex-direction: column;
             justify-content: center;
-            padding-top: 40px;
+            padding-left: 60px;
             position: relative;
         }
 
         .child-wrapper {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            padding: 0 12px;
+            padding: 8px 0;
             position: relative;
         }
 
-        /* Vertical line down from parent - real DOM element */
-        .vertical-line-down {
+        /* Horizontal line from parent to children container */
+        .horizontal-line-right {
             position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 40px;
-            background: var(--line-color);
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        /* Vertical line up to child - real DOM element */
-        .vertical-line-up {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 40px;
-            background: var(--line-color);
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        /* Horizontal connector line - real DOM element */
-        .horizontal-line {
-            position: absolute;
-            top: -40px;
+            left: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
             height: 2px;
             background: var(--line-color);
             pointer-events: none;
             transition: all 0.3s ease;
         }
 
-        /* First child - right half only */
-        .child-wrapper:first-child .horizontal-line {
-            left: 50%;
-            right: 0;
+        /* Vertical line connector for multiple children */
+        .vertical-connector {
+            position: absolute;
+            left: -60px;
+            width: 2px;
+            background: var(--line-color);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
-        /* Last child - left half only */
-        .child-wrapper:last-child .horizontal-line {
-            left: 0;
-            right: 50%;
+        /* Vertical line to each child */
+        .vertical-line-to-child {
+            position: absolute;
+            left: -60px;
+            top: 50%;
+            width: 2px;
+            height: 2px;
+            background: var(--line-color);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
-        /* Middle children - full width */
-        .child-wrapper:not(:first-child):not(:last-child) .horizontal-line {
-            left: 0;
-            right: 0;
+        /* First child - top half of vertical connector */
+        .child-wrapper:first-child .vertical-connector {
+            top: 50%;
+            bottom: 0;
         }
 
-        /* Single child - no horizontal needed */
-        .child-wrapper:only-child .horizontal-line {
-            display: none;
+        /* Last child - bottom half of vertical connector */
+        .child-wrapper:last-child .vertical-connector {
+            top: 0;
+            bottom: 50%;
         }
 
-        /* Root node children don't need vertical line up */
-        .root-node > .node-content ~ .children .child-wrapper > .vertical-line-up {
+        /* Middle children - full vertical connector */
+        .child-wrapper:not(:first-child):not(:last-child) .vertical-connector {
+            top: 0;
+            bottom: 0;
+        }
+
+        /* Single child - small vertical line only */
+        .child-wrapper:only-child .vertical-connector {
             display: none;
         }
 
@@ -527,14 +619,14 @@
         .children-container {
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: 2000px;
+            max-width: 2000px;
             opacity: 1;
         }
 
         .children-container.collapsed {
-            max-height: 0;
+            max-width: 0;
             opacity: 0;
-            padding-top: 0;
+            padding-left: 0;
         }
 
         /* Drag and Drop Styles */
@@ -617,6 +709,7 @@
             position: sticky;
             top: 90px;
             box-shadow: var(--shadow-sm);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .form-panel h2 {
@@ -624,6 +717,7 @@
             margin-bottom: 20px;
             color: var(--text-primary);
             font-weight: 600;
+            transition: color var(--transition-speed);
         }
 
         .form-group {
@@ -638,6 +732,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 500;
+            transition: color var(--transition-speed);
         }
 
         .form-group input,
@@ -683,11 +778,11 @@
 
         .btn-primary {
             background: var(--text-primary);
-            color: white;
+            color: var(--bg-secondary);
         }
 
         .btn-primary:hover {
-            background: #27272a;
+            background: var(--text-secondary);
         }
 
         .btn-secondary {
@@ -707,8 +802,18 @@
             border: 1px solid #fecaca;
         }
 
+        [data-theme="dark"] .btn-danger {
+            background: #450a0a;
+            color: #fca5a5;
+            border: 1px solid #7f1d1d;
+        }
+
         .btn-danger:hover {
             background: #fee2e2;
+        }
+
+        [data-theme="dark"] .btn-danger:hover {
+            background: #7f1d1d;
         }
 
         .btn-group {
@@ -726,6 +831,7 @@
             padding: 24px;
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .list-panel h2 {
@@ -733,6 +839,7 @@
             margin-bottom: 20px;
             color: var(--text-primary);
             font-weight: 600;
+            transition: color var(--transition-speed);
         }
 
         .person-list {
@@ -768,11 +875,13 @@
             color: var(--text-primary);
             margin-bottom: 2px;
             font-weight: 500;
+            transition: color var(--transition-speed);
         }
 
         .person-info p {
             font-size: 12px;
             color: var(--text-tertiary);
+            transition: color var(--transition-speed);
         }
 
         .person-actions {
@@ -806,10 +915,16 @@
             color: #dc2626;
         }
 
+        [data-theme="dark"] .icon-btn.delete:hover {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-tertiary);
+            transition: color var(--transition-speed);
         }
 
         .empty-state h3 {
@@ -817,6 +932,7 @@
             margin-bottom: 8px;
             color: var(--text-secondary);
             font-weight: 500;
+            transition: color var(--transition-speed);
         }
 
         .zoom-controls {
@@ -832,6 +948,7 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-lg);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .zoom-btn {
@@ -858,6 +975,7 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
+            transition: border-color var(--transition-speed);
         }
 
         .role-types-section h3 {
@@ -867,6 +985,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
+            transition: color var(--transition-speed);
         }
 
         .role-type-item {
@@ -884,6 +1003,7 @@
             border-radius: var(--radius-sm);
             color: var(--text-primary);
             font-size: 13px;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
         }
 
         .role-type-item input[type="color"] {
@@ -912,6 +1032,7 @@
             width: 100%;
             margin-top: 8px;
             font-weight: 500;
+            transition: all 0.2s;
         }
 
         .add-role-btn:hover {
@@ -943,19 +1064,30 @@
                 height: calc(100vh - 280px);
             }
 
+            /* Mobile vertical layout */
+            .tree {
+                flex-direction: column;
+            }
+
+            .tree-node {
+                flex-direction: column;
+            }
+
             .children {
                 flex-direction: column;
-                align-items: center;
-                gap: 30px;
+                padding-left: 0;
+                padding-top: 40px;
             }
 
             .child-wrapper {
-                padding: 20px 0;
+                flex-direction: column;
+                padding: 10px 0;
             }
 
-            .vertical-line-down,
-            .vertical-line-up,
-            .horizontal-line {
+            /* Hide horizontal lines on mobile */
+            .horizontal-line-right,
+            .vertical-connector,
+            .vertical-line-to-child {
                 display: none;
             }
         }
@@ -968,6 +1100,13 @@
             <span>Organizational Accountability Chart</span>
         </div>
         <div class="header-actions">
+            <!-- Theme Toggle -->
+            <label class="theme-toggle" title="Toggle Dark Mode">
+                <span class="theme-icon">☀️</span>
+                <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                <span class="theme-slider"></span>
+                <span class="theme-icon">🌙</span>
+            </label>
             <div class="file-actions">
                 <button class="file-btn" onclick="exportData()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1094,6 +1233,20 @@
         let hoverExpandTimeout = null;
         let sortableInstances = [];
 
+        // Theme management
+        let currentTheme = localStorage.getItem('org_chart_theme') || 'light';
+
+        function initTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            document.getElementById('themeToggle').checked = currentTheme === 'dark';
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('org_chart_theme', currentTheme);
+        }
+
         function saveData() {
             localStorage.setItem('org_chart_company_name', companyName);
             localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
@@ -1109,6 +1262,7 @@
         }
 
         function init() {
+            initTheme();
             loadCollapsedState();
             document.getElementById('companyName').value = companyName;
             renderRoleTypes();
@@ -1165,7 +1319,7 @@
             return type ? type.color : '#3b82f6';
         }
 
-        // Render tree node with explicit line elements
+        // Render tree node with horizontal layout and proper connection lines
         function renderTreeNode(node, level = 0, isRoot = true) {
             const hasChildren = node.children && node.children.length > 0;
             const nodeColor = getTypeColor(node.type);
@@ -1174,7 +1328,6 @@
             
             let nodeHtml = `
                 <div class="node-content" data-node-id="${node.id}">
-                    ${hasChildren ? `<div class="vertical-line-down"></div>` : ''}
                     <div class="node-card" style="--node-color: ${nodeColor}" 
                          onclick="selectPerson(${node.id})"
                          onmouseenter="handleNodeHover(${node.id}, true)"
@@ -1200,10 +1353,13 @@
                 childrenHtml += `<div class="children-container ${isCollapsed ? 'collapsed' : ''}" data-parent-id="${node.id}">`;
                 childrenHtml += `<div class="children" data-children-of="${node.id}">`;
                 node.children.forEach((child, index) => {
+                    const isFirst = index === 0;
+                    const isLast = index === node.children.length - 1;
+                    
                     childrenHtml += `
                         <div class="child-wrapper" data-child-id="${child.id}">
-                            ${!isRoot ? '<div class="vertical-line-up"></div>' : ''}
-                            ${multipleChildren ? '<div class="horizontal-line"></div>' : ''}
+                            <div class="horizontal-line-right"></div>
+                            ${multipleChildren ? `<div class="vertical-connector" style="${isFirst ? 'top: 50%;' : isLast ? 'bottom: 50%;' : 'top: 0; bottom: 0;'}"></div>` : ''}
                             ${renderTreeNode(child, level + 1, false)}
                         </div>`;
                 });
