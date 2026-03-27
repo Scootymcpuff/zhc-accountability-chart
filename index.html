@@ -2171,7 +2171,7 @@
         async function exportPNG() {
             // Make sure we're in chart view
             showView('chart');
-            
+
             const treeContainer = document.getElementById('orgTree');
             if (!treeContainer) {
                 alert('No chart to export');
@@ -2182,40 +2182,66 @@
             showNotification('Generating PNG...');
 
             try {
-                // Temporarily reset transform for clean capture
+                // Get the actual tree content
                 const treeEl = document.getElementById('treeContainer');
-                const originalTransform = treeEl ? treeEl.style.transform : '';
-                if (treeEl) treeEl.style.transform = 'none';
+                const actualTree = treeEl || treeContainer;
 
-                // Calculate the bounds of the actual tree content
-                const treeContent = treeEl || treeContainer;
-                const rect = treeContent.getBoundingClientRect();
-                
-                // Capture with html2canvas
-                const canvas = await html2canvas(treeContainer, {
-                    backgroundColor: '#0f172a',
-                    scale: 2, // High resolution
+                // Create a cloned container for capture to avoid overflow issues
+                const cloneContainer = document.createElement('div');
+                cloneContainer.style.cssText = `
+                    position: absolute;
+                    left: -9999px;
+                    top: 0;
+                    background: var(--bg-primary, #0f172a);
+                    padding: 40px;
+                    overflow: visible;
+                `;
+
+                // Clone the tree and reset its transform
+                const clonedTree = actualTree.cloneNode(true);
+                clonedTree.style.transform = 'none';
+                clonedTree.style.position = 'relative';
+
+                // Add legend to the clone
+                const legend = document.getElementById('legend');
+                if (legend && legend.innerHTML.trim()) {
+                    const clonedLegend = legend.cloneNode(true);
+                    clonedLegend.style.cssText = 'margin-bottom: 30px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;';
+                    cloneContainer.appendChild(clonedLegend);
+                }
+
+                cloneContainer.appendChild(clonedTree);
+                document.body.appendChild(cloneContainer);
+
+                // Calculate the full bounds of the cloned tree
+                const fullWidth = clonedTree.scrollWidth + 80; // +padding
+                const fullHeight = clonedTree.scrollHeight + (legend ? 80 : 40);
+
+                // Capture the clone with full dimensions
+                const canvas = await html2canvas(cloneContainer, {
+                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() || '#0f172a',
+                    scale: 2,
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
-                    width: treeContainer.scrollWidth,
-                    height: treeContainer.scrollHeight,
+                    width: fullWidth,
+                    height: fullHeight,
                     x: 0,
                     y: 0,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: treeContainer.scrollWidth,
-                    windowHeight: treeContainer.scrollHeight
+                    windowWidth: fullWidth,
+                    windowHeight: fullHeight
                 });
 
-                // Restore transform
-                if (treeEl) treeEl.style.transform = originalTransform;
+                // Clean up the clone
+                document.body.removeChild(cloneContainer);
 
                 // Convert to PNG and download
                 const pngUrl = canvas.toDataURL('image/png');
                 const date = new Date().toISOString().split('T')[0];
                 const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                
+
                 const link = document.createElement('a');
                 link.download = `${safeName}_org_chart_${date}.png`;
                 link.href = pngUrl;
