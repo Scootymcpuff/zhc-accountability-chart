@@ -661,6 +661,91 @@
             50% { opacity: 1; }
         }
 
+        /* Reparenting drag styles */
+        .reparent-dragging .node-card {
+            opacity: 0.4;
+            transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .reparent-dragging .node-card.drag-source {
+            opacity: 0.6;
+            border-color: var(--accent-blue);
+            background: var(--accent-blue-light);
+        }
+
+        .reparent-dragging .node-card.valid-drop-target {
+            opacity: 1;
+            border: 2px solid var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            cursor: copy;
+        }
+
+        .reparent-dragging .node-card.valid-drop-target:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.3), 0 0 0 4px rgba(59, 130, 246, 0.2);
+            background: var(--accent-blue-light);
+        }
+
+        .reparent-dragging .node-card.invalid-drop-target {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        .node-card.drag-over-valid {
+            border-color: var(--accent-blue) !important;
+            background: var(--accent-blue-light) !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 8px 25px -5px rgba(59, 130, 246, 0.4) !important;
+            transform: translateY(-3px) scale(1.03) !important;
+        }
+
+        .node-card.drag-over-invalid {
+            border-color: #dc2626 !important;
+            background: #fef2f2 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+            cursor: not-allowed !important;
+        }
+
+        [data-theme="dark"] .node-card.drag-over-invalid {
+            background: #450a0a !important;
+        }
+
+        /* Drop indicator line */
+        .drop-indicator {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            background: var(--accent-blue);
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .drop-indicator.active {
+            opacity: 1;
+        }
+
+        /* Drag handle improvements */
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-tertiary);
+            padding: 4px;
+            display: none;
+            font-size: 14px;
+            line-height: 1;
+            transition: all 0.2s;
+            border-radius: 4px;
+            user-select: none;
+        }
+
+        .drag-handle:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
         /* Focus Mode */
         .focus-mode .node-card {
             opacity: 0.4;
@@ -1332,12 +1417,20 @@
 
         function renderLegend() {
             const container = document.getElementById('legend');
-            container.innerHTML = roleTypes.map(rt => `
+            let html = roleTypes.map(rt => `
                 <div class="legend-item">
                     <div class="legend-dot" style="background: ${rt.color}"></div>
                     <span>${rt.name}</span>
                 </div>
             `).join('');
+            // Add drag hint
+            html += `
+                <div class="legend-item" title="Drag the handle (⋮⋮) on any node to move it to a different parent">
+                    <span style="font-size: 10px; margin-right: 4px;">⋮⋮</span>
+                    <span>Drag to move</span>
+                </div>
+            `;
+            container.innerHTML = html;
         }
 
         function buildTree() {
@@ -1527,17 +1620,17 @@
             }
         }
 
-        // Drag and Drop with SortableJS
+        // Drag and Drop with SortableJS - handles sibling reordering only
         function initDragAndDrop() {
-            // Initialize Sortable on each children container
+            // Initialize Sortable on each children container for sibling reordering
             document.querySelectorAll('.children').forEach(container => {
                 const parentId = container.dataset.childrenOf ? parseInt(container.dataset.childrenOf) : null;
-                
+
                 const sortable = new Sortable(container, {
                     group: {
                         name: 'nested',
-                        pull: true,
-                        put: true
+                        pull: false,  // Disable pulling - reparenting is done via HTML5 DnD
+                        put: false    // Disable putting - reparenting is done via HTML5 DnD
                     },
                     animation: 200,
                     handle: '.drag-handle',
@@ -1549,101 +1642,184 @@
                     onEnd: function(evt) {
                         const card = evt.item.closest('.node-card');
                         if (card) card.classList.remove('dragging');
-                        
+
                         const nodeId = parseInt(evt.item.dataset.childId);
                         const newParentId = evt.to.dataset.childrenOf ? parseInt(evt.to.dataset.childrenOf) : null;
-                        const oldIndex = evt.oldIndex;
-                        const newIndex = evt.newIndex;
-                        
-                        // Update the data model
-                        if (nodeId) {
+
+                        // Only handle reordering within the same parent
+                        if (nodeId && newParentId !== undefined) {
                             const node = people.find(p => p.id === nodeId);
                             if (node) {
-                                // Check if this would create a circular reference
-                                if (newParentId && isDescendant(nodeId, newParentId)) {
-                                    alert('Cannot move a node under its own descendant');
-                                    renderTree();
-                                    return;
-                                }
-                                
-                                node.reportsTo = newParentId;
-                                
-                                // Reorder siblings
+                                // Reorder siblings based on DOM order
                                 const siblings = people.filter(p => p.reportsTo === newParentId);
+                                const newOrder = Array.from(evt.to.children).map(child =>
+                                    parseInt(child.dataset.childId)
+                                );
+
+                                // Sort the people array to match new DOM order
                                 siblings.sort((a, b) => {
-                                    const aIndex = Array.from(evt.to.children).findIndex(child => 
-                                        parseInt(child.dataset.childId) === a.id
-                                    );
-                                    const bIndex = Array.from(evt.to.children).findIndex(child => 
-                                        parseInt(child.dataset.childId) === b.id
-                                    );
+                                    const aIndex = newOrder.indexOf(a.id);
+                                    const bIndex = newOrder.indexOf(b.id);
                                     return aIndex - bIndex;
                                 });
-                                
+
                                 saveData();
-                                renderTree();
+                                // Don't re-render to preserve the new order visually
                             }
                         }
                     }
                 });
-                
+
                 sortableInstances.push(sortable);
             });
         }
 
-        // HTML5 Drag and Drop for reparenting (fallback/alternative)
+        // Drag to Reparent functionality
         let draggedNodeId = null;
+        let draggedNodeData = null;
+        let dragSourceElement = null;
 
-        function handleDragStart(event, nodeId) {
-            draggedNodeId = nodeId;
-            event.dataTransfer.effectAllowed = 'move';
-            event.dataTransfer.setData('text/plain', nodeId);
-            
-            // Add visual feedback
-            document.querySelectorAll('.node-card').forEach(card => {
-                card.classList.add('potential-drop-target');
-            });
+        function getAllDescendantIds(nodeId) {
+            const descendants = [];
+            const children = people.filter(p => p.reportsTo === nodeId);
+            for (const child of children) {
+                descendants.push(child.id);
+                descendants.push(...getAllDescendantIds(child.id));
+            }
+            return descendants;
         }
 
-        // Allow dropping on nodes to reparent
+        function canReparent(nodeId, targetId) {
+            // Can't drop on itself
+            if (nodeId === targetId) return false;
+            // Can't drop on its own descendants (would create cycle)
+            if (isDescendant(nodeId, targetId)) return false;
+            // Get current parent
+            const node = people.find(p => p.id === nodeId);
+            if (!node) return false;
+            // Can't drop on same parent (that's reordering, handled by SortableJS)
+            if (node.reportsTo === targetId) return false;
+            return true;
+        }
+
+        function handleDragStart(event, nodeId) {
+            event.stopPropagation();
+            draggedNodeId = nodeId;
+            draggedNodeData = people.find(p => p.id === nodeId);
+            dragSourceElement = event.target.closest('.node-card');
+
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', nodeId);
+
+            // Add global dragging state
+            document.body.classList.add('reparent-dragging');
+            document.getElementById('orgTree').classList.add('reparent-drag-active');
+
+            // Get all descendant IDs for invalid targeting
+            const descendantIds = getAllDescendantIds(nodeId);
+
+            // Mark all cards with appropriate classes
+            document.querySelectorAll('.node-card').forEach(card => {
+                const cardNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
+
+                if (cardNodeId === nodeId) {
+                    // The source node being dragged
+                    card.classList.add('drag-source');
+                } else if (descendantIds.includes(cardNodeId)) {
+                    // Can't drop on descendants
+                    card.classList.add('invalid-drop-target');
+                } else if (!canReparent(nodeId, cardNodeId)) {
+                    // Other invalid targets (same parent, etc)
+                    card.classList.add('invalid-drop-target');
+                } else {
+                    // Valid drop target
+                    card.classList.add('valid-drop-target');
+                }
+            });
+
+            // Set custom drag image if possible
+            if (dragSourceElement) {
+                const rect = dragSourceElement.getBoundingClientRect();
+                event.dataTransfer.setDragImage(dragSourceElement, event.clientX - rect.left, event.clientY - rect.top);
+            }
+        }
+
+        function clearDragState() {
+            document.body.classList.remove('reparent-dragging');
+            document.getElementById('orgTree').classList.remove('reparent-drag-active');
+            document.querySelectorAll('.node-card').forEach(card => {
+                card.classList.remove('drag-source', 'valid-drop-target', 'invalid-drop-target', 'drag-over-valid', 'drag-over-invalid');
+            });
+            draggedNodeId = null;
+            draggedNodeData = null;
+            dragSourceElement = null;
+        }
+
+        // Global dragover handler for drop target highlighting
         document.addEventListener('dragover', function(e) {
             if (!draggedNodeId) return;
-            
+
             const card = e.target.closest('.node-card');
-            if (card && !card.contains(e.target.closest('.drag-handle'))) {
+            if (!card) return;
+
+            // Don't allow dropping on the drag handle itself
+            if (e.target.closest('.drag-handle')) return;
+
+            const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
+
+            // Check if this is a valid drop
+            if (canReparent(draggedNodeId, targetNodeId)) {
                 e.preventDefault();
-                card.classList.add('drag-over');
+                e.dataTransfer.dropEffect = 'move';
+                card.classList.add('drag-over-valid');
+                card.classList.remove('drag-over-invalid');
+            } else {
+                e.dataTransfer.dropEffect = 'none';
+                card.classList.add('drag-over-invalid');
+                card.classList.remove('drag-over-valid');
             }
         });
 
         document.addEventListener('dragleave', function(e) {
             const card = e.target.closest('.node-card');
             if (card) {
-                card.classList.remove('drag-over');
+                card.classList.remove('drag-over-valid', 'drag-over-invalid');
             }
         });
 
         document.addEventListener('drop', function(e) {
             if (!draggedNodeId) return;
-            
+
             const card = e.target.closest('.node-card');
             if (card) {
-                e.preventDefault();
-                card.classList.remove('drag-over');
-                
                 const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
-                
-                if (draggedNodeId !== targetNodeId && !isDescendant(draggedNodeId, targetNodeId)) {
+
+                if (canReparent(draggedNodeId, targetNodeId)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Perform the reparenting
                     const node = people.find(p => p.id === draggedNodeId);
                     if (node) {
+                        const oldParent = node.reportsTo;
                         node.reportsTo = targetNodeId;
                         saveData();
                         renderTree();
+
+                        // Show feedback (optional - could add toast notification here)
+                        console.log(`Moved ${node.name} to report to ${people.find(p => p.id === targetNodeId)?.name || 'root'}`);
                     }
                 }
             }
-            
-            draggedNodeId = null;
+
+            clearDragState();
+        });
+
+        // Clear state on drag end (handles case where drop doesn't occur)
+        document.addEventListener('dragend', function(e) {
+            if (draggedNodeId) {
+                clearDragState();
+            }
         });
 
         function updateTypeSelect() {
