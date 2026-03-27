@@ -1310,15 +1310,21 @@
                 color: #333;
             }
 
-            .children::before,
-            .child-wrapper::before,
-            .child-wrapper::after {
-                background: #666 !important;
+            /* Connection lines for print */
+            .horizontal-line-right,
+            .vertical-connector,
+            .children-spine,
+            .vertical-line-to-child {
+                background: #999 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             /* Ensure background colors print */
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
 
         /* Export notification */
@@ -2182,6 +2188,10 @@
             showNotification('Generating PNG...');
 
             try {
+                // Get computed styles for line colors
+                const lineColor = getComputedStyle(document.body).getPropertyValue('--line-color').trim() || '#d4d4d8';
+                const bgColor = getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() || '#fafafa';
+
                 // Get the actual tree content
                 const treeEl = document.getElementById('treeContainer');
                 const actualTree = treeEl || treeContainer;
@@ -2192,7 +2202,7 @@
                     position: absolute;
                     left: -9999px;
                     top: 0;
-                    background: var(--bg-primary, #0f172a);
+                    background: ${bgColor};
                     padding: 40px;
                     overflow: visible;
                 `;
@@ -2201,6 +2211,14 @@
                 const clonedTree = actualTree.cloneNode(true);
                 clonedTree.style.transform = 'none';
                 clonedTree.style.position = 'relative';
+
+                // Fix connection lines in clone - set explicit background colors
+                const lineSelectors = ['.horizontal-line-right', '.vertical-connector', '.children-spine', '.vertical-line-to-child'];
+                lineSelectors.forEach(selector => {
+                    clonedTree.querySelectorAll(selector).forEach(el => {
+                        el.style.background = lineColor;
+                    });
+                });
 
                 // Add legend to the clone
                 const legend = document.getElementById('legend');
@@ -2219,7 +2237,7 @@
 
                 // Capture the clone with full dimensions
                 const canvas = await html2canvas(cloneContainer, {
-                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() || '#0f172a',
+                    backgroundColor: bgColor,
                     scale: 2,
                     useCORS: true,
                     allowTaint: true,
