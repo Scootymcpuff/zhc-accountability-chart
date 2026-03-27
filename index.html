@@ -593,25 +593,25 @@
         }
 
         /* First child - top half of vertical connector */
-        .child-wrapper:first-child .vertical-connector {
+        .child-wrapper:first-of-type .vertical-connector {
             top: 50%;
             bottom: 0;
         }
 
         /* Last child - bottom half of vertical connector */
-        .child-wrapper:last-child .vertical-connector {
+        .child-wrapper:last-of-type .vertical-connector {
             top: 0;
             bottom: 50%;
         }
 
         /* Middle children - full vertical connector */
-        .child-wrapper:not(:first-child):not(:last-child) .vertical-connector {
+        .child-wrapper:not(:first-of-type):not(:last-of-type) .vertical-connector {
             top: 0;
             bottom: 0;
         }
 
         /* Single child - small vertical line only */
-        .child-wrapper:only-child .vertical-connector {
+        .child-wrapper:only-of-type .vertical-connector {
             display: none;
         }
 
@@ -1499,12 +1499,14 @@
             return `<div class="tree-node ${isRoot ? 'root-node' : ''}" data-node-id="${node.id}">${nodeHtml}${childrenHtml}</div>`;
         }
 
+        const WHEEL_ZOOM_SENSITIVITY = 0.00032;
         let zoomLevel = 1;
         let panX = 0;
         let panY = 0;
         let isPanning = false;
         let lastMouseX = 0;
         let lastMouseY = 0;
+        let panZoomListenersAttached = false;
 
         function renderTree() {
             // Clean up old Sortable instances
@@ -1537,13 +1539,15 @@
 
         function setupPanZoom() {
             const treeArea = document.getElementById('orgTree');
-            if (!treeArea) return;
+            if (!treeArea || panZoomListenersAttached) return;
+            panZoomListenersAttached = true;
 
             treeArea.addEventListener('wheel', function(e) {
                 if (e.target.closest('.node-card')) return;
                 e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                zoomLevel = Math.max(0.3, Math.min(3, zoomLevel * delta));
+                const dy = Math.max(-150, Math.min(150, e.deltaY));
+                const factor = Math.exp(-dy * WHEEL_ZOOM_SENSITIVITY);
+                zoomLevel = Math.max(0.3, Math.min(3, zoomLevel * factor));
                 applyTransform();
             }, { passive: false });
 
@@ -1651,16 +1655,28 @@
                             const node = people.find(p => p.id === nodeId);
                             if (node) {
                                 // Reorder siblings based on DOM order
-                                const siblings = people.filter(p => p.reportsTo === newParentId);
                                 const newOrder = Array.from(evt.to.children).map(child =>
                                     parseInt(child.dataset.childId)
                                 );
 
-                                // Sort the people array to match new DOM order
-                                siblings.sort((a, b) => {
-                                    const aIndex = newOrder.indexOf(a.id);
-                                    const bIndex = newOrder.indexOf(b.id);
-                                    return aIndex - bIndex;
+                                // Persist sibling order in the backing array
+                                const siblings = people.filter(p => p.reportsTo === newParentId);
+                                const siblingsById = new Map(siblings.map(s => [s.id, s]));
+                                const orderedSiblings = newOrder
+                                    .map(id => siblingsById.get(id))
+                                    .filter(Boolean);
+                                const orderedIds = new Set(orderedSiblings.map(s => s.id));
+                                siblings.forEach(s => {
+                                    if (!orderedIds.has(s.id)) orderedSiblings.push(s);
+                                });
+
+                                let siblingIndex = 0;
+                                people = people.map(person => {
+                                    if (person.reportsTo === newParentId) {
+                                        const nextSibling = orderedSiblings[siblingIndex++];
+                                        return nextSibling || person;
+                                    }
+                                    return person;
                                 });
 
                                 saveData();
@@ -1932,12 +1948,13 @@
             document.getElementById('name').value = person.name;
             document.getElementById('role').value = person.role;
             document.getElementById('domain').value = person.domain || '';
-            document.getElementById('reportsTo').value = person.reportsTo || '';
             document.getElementById('type').value = person.type || roleTypes[0].id;
             document.getElementById('accountabilities').value = person.accountabilities || '';
             document.getElementById('decisions').value = person.decisions || '';
             document.getElementById('deleteBtn').style.display = 'block';
-            updateReportsToOptions(); renderList();
+            updateReportsToOptions();
+            document.getElementById('reportsTo').value = person.reportsTo || '';
+            renderList();
         }
 
         function selectPerson(id) { showView('edit'); editPerson(id); }
