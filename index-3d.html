@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accountability Chart - 3D View</title>
+    <script src="//cdn.jsdelivr.net/npm/3d-force-graph"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --border-color: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --accent-blue: #60a5fa;
+            --accent-blue-light: #1e3a5f;
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 64px;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .company-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            width: auto;
+            min-width: 200px;
+        }
+
+        .company-name:hover, .company-name:focus {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 4px 8px;
+            margin: -4px -8px;
+            outline: none;
+        }
+
+        .header span {
+            color: var(--text-tertiary);
+            font-size: 13px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .view-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .view-btn.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .control-btn {
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .control-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--text-tertiary);
+            color: var(--text-primary);
+        }
+
+        #graph-container {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+        }
+
+        .controls-panel {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        .controls-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .dag-modes {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .dag-btn {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dag-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .dag-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 320px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tooltip-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .tooltip-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tooltip-role {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .tooltip-domain {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        .tooltip-section {
+            margin-top: 12px;
+        }
+
+        .tooltip-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .tooltip-section-content {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 100;
+            max-width: 250px;
+        }
+
+        .instructions-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .instructions-list {
+            list-style: none;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .instructions-list li {
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .instructions-list li::before {
+            content: '•';
+            position: absolute;
+            left: 4px;
+            color: var(--accent-blue);
+        }
+
+        .node-sprite {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-btn {
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .file-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--text-tertiary);
+            color: var(--text-primary);
+        }
+
+        .file-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <input type="text" class="company-name" id="companyName" placeholder="Company Name">
+            <span>3D Accountability Chart</span>
+        </div>
+        <div class="header-actions">
+            <div class="file-actions">
+                <button class="file-btn" onclick="document.getElementById('importFile').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Import
+                </button>
+                <input type="file" id="importFile" accept=".json" onchange="importData(this)">
+                <button class="file-btn" onclick="exportData()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export
+                </button>
+            </div>
+            <div class="view-toggle">
+                <a href="index.html" class="view-btn">2D View</a>
+                <a href="index-3d.html" class="view-btn active">3D View</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="graph-container"></div>
+
+    <div class="controls-panel">
+        <div class="controls-title">Layout Controls</div>
+        <div class="control-group">
+            <span class="control-label">Orientation</span>
+            <div class="dag-modes">
+                <button class="dag-btn active" onclick="setDagMode('td')" title="Top Down">TD</button>
+                <button class="dag-btn" onclick="setDagMode('bu')" title="Bottom Up">BU</button>
+                <button class="dag-btn" onclick="setDagMode('lr')" title="Left Right">LR</button>
+                <button class="dag-btn" onclick="setDagMode('rl')" title="Right Left">RL</button>
+                <button class="dag-btn" onclick="setDagMode('radialout')" title="Radial Out">RAD</button>
+            </div>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" onclick="expandAll()" style="width: 100%;">Expand All</button>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" onclick="collapseAll()" style="width: 100%;">Collapse All</button>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" onclick="resetCamera()" style="width: 100%;">Reset Camera</button>
+        </div>
+        <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="instructions">
+        <div class="instructions-title">Navigation</div>
+        <ul class="instructions-list">
+            <li>Left click + drag to rotate</li>
+            <li>Right click + drag to pan</li>
+            <li>Scroll to zoom</li>
+            <li>Click node to collapse/expand</li>
+            <li>Hover for details</li>
+        </ul>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-header">
+            <div class="tooltip-color" id="tooltipColor"></div>
+            <div>
+                <div class="tooltip-name" id="tooltipName"></div>
+                <div class="tooltip-role" id="tooltipRole"></div>
+                <div class="tooltip-domain" id="tooltipDomain"></div>
+            </div>
+        </div>
+        <div class="tooltip-section" id="tooltipAccountabilitiesSection">
+            <div class="tooltip-section-title">Key Accountabilities</div>
+            <div class="tooltip-section-content" id="tooltipAccountabilities"></div>
+        </div>
+        <div class="tooltip-section" id="tooltipDecisionsSection">
+            <div class="tooltip-section-title">Decision Rights</div>
+            <div class="tooltip-section-content" id="tooltipDecisions"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+        // --- Data Structure ---
+        const defaultRoleTypes = [
+            { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
+            { id: 'ai-agent', name: 'AI Agent', color: '#10b981' },
+            { id: 'human', name: 'Human Team', color: '#3b82f6' }
+        ];
+
+        const defaultPeople = [
+            { id: 1, name: "Nathaniel", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
+            { id: 2, name: "Belisarius", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
+            { id: 3, name: "Ghost", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
+            { id: 4, name: "Ironhide", role: "Maintenance Ops", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
+        ];
+
+        // --- State ---
+        let roleTypes = [];
+        let people = [];
+        let companyName = 'Kasko Cattle';
+        let collapsedNodes = new Set();
+        let graph = null;
+        let currentDagMode = 'td';
+
+        // --- Load Data ---
+        function loadData() {
+            try {
+                const localRoleTypes = JSON.parse(localStorage.getItem('org_chart_role_types'));
+                const localPeople = JSON.parse(localStorage.getItem('org_chart_people'));
+                const localCollapsed = JSON.parse(localStorage.getItem('org_chart_collapsed'));
+                const localCompanyName = localStorage.getItem('org_chart_company_name');
+
+                roleTypes = (Array.isArray(localRoleTypes) && localRoleTypes.length > 0) ? localRoleTypes : defaultRoleTypes;
+                people = (Array.isArray(localPeople) && localPeople.length > 0) ? localPeople : defaultPeople;
+                companyName = localCompanyName || 'Kasko Cattle';
+                
+                if (Array.isArray(localCollapsed)) {
+                    collapsedNodes = new Set(localCollapsed);
+                }
+            } catch (e) {
+                console.warn("Storage cache was corrupted. Booting with defaults.");
+                roleTypes = defaultRoleTypes;
+                people = defaultPeople;
+            }
+
+            document.getElementById('companyName').value = companyName;
+        }
+
+        function saveData() {
+            localStorage.setItem('org_chart_company_name', companyName);
+            localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
+            localStorage.setItem('org_chart_people', JSON.stringify(people));
+            localStorage.setItem('org_chart_collapsed', JSON.stringify([...collapsedNodes]));
+        }
+
+        // --- Helper Functions ---
+        function getTypeColor(typeId) {
+            const type = roleTypes.find(rt => rt.id === typeId);
+            return type ? type.color : '#3b82f6';
+        }
+
+        function getTypeName(typeId) {
+            const type = roleTypes.find(rt => rt.id === typeId);
+            return type ? type.name : 'Unknown';
+        }
+
+        function getChildren(nodeId) {
+            return people.filter(p => p.reportsTo === nodeId);
+        }
+
+        function getAllDescendantIds(nodeId) {
+            const descendants = [];
+            const children = getChildren(nodeId);
+            for (const child of children) {
+                descendants.push(child.id);
+                descendants.push(...getAllDescendantIds(child.id));
+            }
+            return descendants;
+        }
+
+        // --- Graph Data Building ---
+        function buildGraphData() {
+            const nodes = [];
+            const links = [];
+            const visibleNodeIds = new Set();
+
+            // Start from root nodes
+            const rootNodes = people.filter(p => !p.reportsTo);
+
+            function traverseNode(node) {
+                if (visibleNodeIds.has(node.id)) return;
+                
+                visibleNodeIds.add(node.id);
+                nodes.push({
+                    id: node.id,
+                    name: node.name,
+                    role: node.role,
+                    domain: node.domain,
+                    type: node.type,
+                    accountabilities: node.accountabilities,
+                    decisions: node.decisions,
+                    color: getTypeColor(node.type),
+                    collapsed: collapsedNodes.has(node.id),
+                    hasChildren: getChildren(node.id).length > 0
+                });
+
+                // Add links to children if not collapsed
+                if (!collapsedNodes.has(node.id)) {
+                    const children = getChildren(node.id);
+                    children.forEach(child => {
+                        links.push({
+                            source: node.id,
+                            target: child.id
+                        });
+                        traverseNode(child);
+                    });
+                }
+            }
+
+            rootNodes.forEach(traverseNode);
+
+            return { nodes, links };
+        }
+
+        // --- Node Sprite Creation ---
+        function createNodeSprite(node) {
+            const div = document.createElement('div');
+            div.className = 'node-sprite';
+            div.style.cssText = `
+                background: rgba(30, 41, 59, 0.95);
+                backdrop-filter: blur(10px);
+                border: 2px solid ${node.color};
+                border-radius: 10px;
+                padding: 12px 16px;
+                min-width: 140px;
+                max-width: 200px;
+                text-align: center;
+                cursor: pointer;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+                transition: transform 0.2s, box-shadow 0.2s;
+                pointer-events: auto;
+            `;
+
+            const collapsedBadge = node.collapsed && node.hasChildren ? 
+                `<span style="position: absolute; top: -8px; right: -8px; background: ${node.color}; color: white; font-size: 10px; font-weight: 600; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">${getChildren(node.id).length}</span>` : '';
+
+            div.innerHTML = `
+                <div style="position: relative;">
+                    ${collapsedBadge}
+                    <div style="font-size: 14px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${node.name}</div>
+                    <div style="font-size: 11px; color: ${node.color}; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${node.role}</div>
+                    ${node.domain ? `<div style="font-size: 10px; color: #94a3b8; border-top: 1px solid #334155; margin-top: 6px; padding-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${node.domain}</div>` : ''}
+                </div>
+            `;
+
+            div.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleNodeCollapse(node.id);
+            });
+
+            div.addEventListener('mouseenter', () => {
+                showTooltip(node);
+            });
+
+            div.addEventListener('mouseleave', () => {
+                hideTooltip();
+            });
+
+            return new CSS2DObject(div);
+        }
+
+        // --- Tooltip Functions ---
+        function showTooltip(node) {
+            const tooltip = document.getElementById('tooltip');
+            const typeName = getTypeName(node.type);
+            
+            document.getElementById('tooltipColor').style.background = node.color;
+            document.getElementById('tooltipName').textContent = node.name;
+            document.getElementById('tooltipRole').textContent = node.role;
+            document.getElementById('tooltipDomain').textContent = node.domain || typeName;
+
+            const accSection = document.getElementById('tooltipAccountabilitiesSection');
+            if (node.accountabilities) {
+                document.getElementById('tooltipAccountabilities').textContent = node.accountabilities;
+                accSection.style.display = 'block';
+            } else {
+                accSection.style.display = 'none';
+            }
+
+            const decSection = document.getElementById('tooltipDecisionsSection');
+            if (node.decisions) {
+                document.getElementById('tooltipDecisions').textContent = node.decisions;
+                decSection.style.display = 'block';
+            } else {
+                decSection.style.display = 'none';
+            }
+
+            tooltip.classList.add('visible');
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('visible');
+        }
+
+        function updateTooltipPosition(event) {
+            const tooltip = document.getElementById('tooltip');
+            const x = event.clientX + 20;
+            const y = event.clientY + 20;
+            
+            // Keep tooltip within viewport
+            const rect = tooltip.getBoundingClientRect();
+            const maxX = window.innerWidth - rect.width - 20;
+            const maxY = window.innerHeight - rect.height - 20;
+            
+            tooltip.style.left = Math.min(x, maxX) + 'px';
+            tooltip.style.top = Math.min(y, maxY) + 'px';
+        }
+
+        document.addEventListener('mousemove', updateTooltipPosition);
+
+        // --- Graph Functions ---
+        function toggleNodeCollapse(nodeId) {
+            const node = people.find(p => p.id === nodeId);
+            if (!node) return;
+
+            const hasChildren = getChildren(nodeId).length > 0;
+            if (!hasChildren) return;
+
+            if (collapsedNodes.has(nodeId)) {
+                collapsedNodes.delete(nodeId);
+            } else {
+                collapsedNodes.add(nodeId);
+            }
+
+            saveData();
+            updateGraph();
+        }
+
+        function updateGraph() {
+            const data = buildGraphData();
+            graph.graphData(data);
+        }
+
+        function initGraph() {
+            const elem = document.getElementById('graph-container');
+            const data = buildGraphData();
+
+            graph = ForceGraph3D({
+                controlType: 'orbit',
+                rendererConfig: { antialias: true, alpha: true }
+            })(elem)
+                .graphData(data)
+                .dagMode(currentDagMode)
+                .dagLevelDistance(150)
+                .backgroundColor('#0f172a')
+                .linkColor(() => 'rgba(148, 163, 184, 0.3)')
+                .linkWidth(1)
+                .linkDirectionalParticles(2)
+                .linkDirectionalParticleWidth(2)
+                .linkDirectionalParticleSpeed(0.006)
+                .linkDirectionalParticleColor(() => 'rgba(96, 165, 250, 0.6)')
+                .nodeRelSize(6)
+                .nodeOpacity(0.9)
+                .nodeThreeObject(node => createNodeSprite(node))
+                .nodeThreeObjectExtend(false)
+                .onNodeClick((node, event) => {
+                    // Handle click on the node
+                    const hasChildren = getChildren(node.id).length > 0;
+                    if (hasChildren) {
+                        toggleNodeCollapse(node.id);
+                    }
+                })
+                .onNodeHover((node) => {
+                    elem.style.cursor = node && getChildren(node.id).length > 0 ? 'pointer' : 'default';
+                });
+
+            // Configure controls
+            const controls = graph.controls();
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.1;
+            controls.minDistance = 100;
+            controls.maxDistance = 2000;
+
+            // Initial camera position
+            graph.cameraPosition({ x: 0, y: 300, z: 500 }, { x: 0, y: 0, z: 0 });
+        }
+
+        // --- UI Functions ---
+        window.setDagMode = function(mode) {
+            currentDagMode = mode;
+            
+            // Update UI
+            document.querySelectorAll('.dag-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update graph
+            graph.dagMode(mode);
+        };
+
+        window.expandAll = function() {
+            collapsedNodes.clear();
+            saveData();
+            updateGraph();
+        };
+
+        window.collapseAll = function() {
+            // Collapse all nodes that have children (except root)
+            people.forEach(person => {
+                const hasChildren = getChildren(person.id).length > 0;
+                const isRoot = !person.reportsTo;
+                if (hasChildren && !isRoot) {
+                    collapsedNodes.add(person.id);
+                }
+            });
+            saveData();
+            updateGraph();
+        };
+
+        window.resetCamera = function() {
+            graph.cameraPosition({ x: 0, y: 300, z: 500 }, { x: 0, y: 0, z: 0 }, 1000);
+        };
+
+        window.exportData = function() {
+            const data = {
+                version: '2.0',
+                exportedAt: new Date().toISOString(),
+                companyName: companyName,
+                roleTypes: roleTypes,
+                people: people,
+                collapsedNodes: [...collapsedNodes]
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const date = new Date().toISOString().split('T')[0];
+            const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${safeName}_org_chart_${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        window.importData = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.people) throw new Error('Invalid format');
+                    if (people.length > 0 && !confirm('Replace current data?')) return;
+                    
+                    companyName = data.companyName || 'Organization';
+                    roleTypes = data.roleTypes || defaultRoleTypes;
+                    people = data.people;
+                    
+                    if (data.collapsedNodes) {
+                        collapsedNodes = new Set(data.collapsedNodes);
+                    } else {
+                        collapsedNodes = new Set();
+                    }
+                    
+                    saveData();
+                    document.getElementById('companyName').value = companyName;
+                    renderLegend();
+                    updateGraph();
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        };
+
+        function renderLegend() {
+            const container = document.getElementById('legend');
+            let html = '<div class="control-label" style="margin-top: 8px;">Role Types</div>';
+            html += roleTypes.map(rt => `
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: ${rt.color}"></div>
+                    <span>${rt.name}</span>
+                </div>
+            `).join('');
+            container.innerHTML = html;
+        }
+
+        // --- Company Name Handler ---
+        document.getElementById('companyName').addEventListener('change', function() {
+            companyName = this.value;
+            saveData();
+        });
+
+        // --- Initialize ---
+        loadData();
+        initGraph();
+        renderLegend();
+
+        // Listen for storage changes from other tabs
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'org_chart_people' || e.key === 'org_chart_role_types' || e.key === 'org_chart_collapsed') {
+                loadData();
+                renderLegend();
+                updateGraph();
+            }
+        });
+    </script>
+</body>
+</html>
