@@ -1,62 +1,848 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Accountability Chart</title>
-</head>
-<body>
-    <div id="chartContainer"></div>
+<script>
+        // --- SECURITY PATCH: XSS Prevention ---
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag])
+            );
+        }
 
-    <script>
-    // Initialize the variable
-    let panZoomListenersAttached = false;
-    
-    function isDescendant(parentId, childId) {
-        // Function to check if childId is a descendant of parentId
-        return false; // Placeholder logic
-    }
-    
-    function renderTree() {
-        // Reset flag at start of render
-        panZoomListenersAttached = false;
-        // Your rendering logic...
-    }
-    
-    function saveData() {
-        try {
-            // Logic to save data
-        } catch (error) {
-            console.error('Error saving data:', error);
+        const defaultRoleTypes = [
+            { id: 'chairman', name: 'Chairman', color: '#f59e0b' },
+            { id: 'ai-agent', name: 'AI Agent', color: '#10b981' },
+            { id: 'human', name: 'Human Team', color: '#3b82f6' }
+        ];
+
+        let companyName = localStorage.getItem('org_chart_company_name') || 'Kasko Cattle';
+        let roleTypes = JSON.parse(localStorage.getItem('org_chart_role_types')) || defaultRoleTypes;
+        let people = JSON.parse(localStorage.getItem('org_chart_people')) || [
+            { id: 1, name: "Nathaniel", role: "Chairman", domain: "Governance", reportsTo: null, type: "chairman", accountabilities: "Strategic direction; final authority", decisions: "All major decisions" },
+            { id: 2, name: "Belisarius", role: "CEO", domain: "Executive", reportsTo: 1, type: "ai-agent", accountabilities: "Strategy execution; operations oversight", decisions: "Day-to-day operations; hiring" },
+            { id: 3, name: "Ghost", role: "CFO/COO", domain: "Finance/Operations", reportsTo: 2, type: "ai-agent", accountabilities: "Financial management; operational efficiency", decisions: "Budget approval; vendor selection" },
+            { id: 4, name: "Ironhide", role: "Maintenance Ops", domain: "Operations", reportsTo: 3, type: "ai-agent", accountabilities: "Daily operations; team coordination", decisions: "Scheduling; resource allocation" }
+        ];
+
+        let editingId = null;
+        let collapsedNodes = new Set();
+        let hoverExpandEnabled = false;
+        let hoverExpandTimeout = null;
+        let sortableInstances = [];
+
+        // Theme management
+        let currentTheme = localStorage.getItem('org_chart_theme') || 'light';
+
+        function initTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            document.getElementById('themeToggle').checked = currentTheme === 'dark';
         }
-    }
-    
-    // Initialize the sortable instances
-    try {
-        // Your sortable instance logic...
-    } catch (error) {
-        console.error('Error initializing sortable instances:', error);
-    }
-    
-    // Example of the html2canvas configuration
-    html2canvas(document.getElementById('chartContainer'), {
-        useWorker: false,
-        // ... other options
-    }).then(canvas => {
-        // Logic after rendering the canvas
-    });
-    
-    // Example usage
-    function someFunction(p) {
-        try {
-            if (p.id !== currentId && currentId && !isDescendant(currentId, p.id)) {
-                // Your logic related to this check
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('org_chart_theme', currentTheme);
+        }
+
+        function saveData() {
+            localStorage.setItem('org_chart_company_name', companyName);
+            localStorage.setItem('org_chart_role_types', JSON.stringify(roleTypes));
+            localStorage.setItem('org_chart_people', JSON.stringify(people));
+            localStorage.setItem('org_chart_collapsed', JSON.stringify([...collapsedNodes]));
+        }
+
+        function loadCollapsedState() {
+            const saved = localStorage.getItem('org_chart_collapsed');
+            if (saved) {
+                collapsedNodes = new Set(JSON.parse(saved));
             }
-        } catch (error) {
-            console.error('Error in someFunction:', error);
         }
-    }
+
+        function init() {
+            initTheme();
+            loadCollapsedState();
+            document.getElementById('companyName').value = companyName;
+            renderRoleTypes();
+            updateTypeSelect();
+            showView('chart');
+        }
+
+        document.getElementById('companyName').addEventListener('change', function() {
+            companyName = this.value;
+            saveData();
+        });
+
+        function showView(view) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.chart-view, .edit-view').forEach(v => v.classList.remove('active'));
+            
+            if (view === 'chart') {
+                document.getElementById('chartView').classList.add('active');
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                renderTree();
+                renderLegend();
+            } else {
+                document.getElementById('editView').classList.add('active');
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                renderList();
+                updateReportsToOptions();
+                renderRoleTypes();
+            }
+        }
+
+        function renderLegend() {
+            const container = document.getElementById('legend');
+            let html = roleTypes.map(rt => `
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: ${rt.color}"></div>
+                    <span>${escapeHTML(rt.name)}</span>
+                </div>
+            `).join('');
+            // Add drag hint
+            html += `
+                <div class="legend-item" title="Drag the handle (⋮⋮) on any node to move it to a different parent">
+                    <span style="font-size: 10px; margin-right: 4px;">⋮⋮</span>
+                    <span>Drag to move</span>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function buildTree() {
+            const root = people.filter(p => !p.reportsTo);
+            
+            function addChildren(parent) {
+                const children = people.filter(p => p.reportsTo === parent.id);
+                return { ...parent, children: children.map(addChildren) };
+            }
+            
+            return root.map(addChildren);
+        }
+
+        function getTypeColor(typeId) {
+            const type = roleTypes.find(rt => rt.id === typeId);
+            return type ? type.color : '#3b82f6';
+        }
+
+        // Render tree node with horizontal layout and proper connection lines
+        function renderTreeNode(node, level = 0, isRoot = true) {
+            const hasChildren = node.children && node.children.length > 0;
+            const nodeColor = getTypeColor(node.type);
+            const isCollapsed = collapsedNodes.has(node.id);
+            const multipleChildren = hasChildren && node.children.length > 1;
+            
+            // --- BUG FIX: Moved draggable and ondragstart to the node-card, added escapeHTML ---
+            let nodeHtml = `
+                <div class="node-content" data-node-id="${node.id}">
+                    <div class="node-card" style="--node-color: ${nodeColor}" 
+                         draggable="true" 
+                         ondragstart="handleDragStart(event, ${node.id})"
+                         onclick="selectPerson(${node.id})"
+                         onmouseenter="handleNodeHover(${node.id}, true)"
+                         onmouseleave="handleNodeHover(${node.id}, false)">
+                        ${hasChildren && isCollapsed ? `<div class="child-count-badge">${node.children.length}</div>` : ''}
+                        <div class="node-header">
+                            <div class="node-name">${escapeHTML(node.name)}</div>
+                            <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+                        </div>
+                        <div class="node-role">${escapeHTML(node.role)}</div>
+                        ${node.domain ? `<div class="node-domain">${escapeHTML(node.domain)}</div>` : ''}
+                        ${hasChildren ? `
+                            <button class="collapse-btn" onclick="event.stopPropagation(); toggleCollapse(${node.id})" title="${isCollapsed ? 'Expand' : 'Collapse'}">
+                                ${isCollapsed ? '+' : '−'}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            let childrenHtml = '';
+            if (hasChildren) {
+                childrenHtml += `<div class="children-container ${isCollapsed ? 'collapsed' : ''}" data-parent-id="${node.id}">`;
+                childrenHtml += `<div class="children" data-children-of="${node.id}">`;
+                node.children.forEach((child, index) => {
+                    childrenHtml += `
+                        <div class="child-wrapper" data-child-id="${child.id}">
+                            <div class="horizontal-line-right"></div>
+                            ${multipleChildren ? `<div class="vertical-connector"></div>` : ''}
+                            ${renderTreeNode(child, level + 1, false)}
+                        </div>`;
+                });
+                childrenHtml += `</div></div>`;
+            }
+            
+            return `<div class="tree-node ${isRoot ? 'root-node' : ''}" data-node-id="${node.id}">${nodeHtml}${childrenHtml}</div>`;
+        }
+
+        const WHEEL_ZOOM_SENSITIVITY = 0.00032;
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let panZoomListenersAttached = false;
+
+        function renderTree() {
+            // Clean up old Sortable instances
+            sortableInstances.forEach(s => s.destroy());
+            sortableInstances = [];
+            
+            const tree = buildTree();
+            const container = document.getElementById('orgTree');
+            
+            if (tree.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3><p>Switch to Edit People to add your team</p></div>`;
+                return;
+            }
+            
+            container.innerHTML = '<div class="tree-container" id="treeContainer"><div class="tree">' + tree.map(n => renderTreeNode(n, 0, true)).join('') + '</div></div>';
+            
+            applyTransform();
+            updateChildrenSpines();
+            setupPanZoom();
+            initDragAndDrop();
+        }
+
+        function updateChildrenSpines() {
+            document.querySelectorAll('.children').forEach(childrenEl => {
+                childrenEl.querySelectorAll('.children-spine').forEach(spine => spine.remove());
+
+                const wrappers = childrenEl.querySelectorAll(':scope > .child-wrapper');
+                if (wrappers.length <= 1) return;
+
+                const first = wrappers[0];
+                const last = wrappers[wrappers.length - 1];
+                const firstCenter = first.offsetTop + (first.offsetHeight / 2);
+                const lastCenter = last.offsetTop + (last.offsetHeight / 2);
+                const height = Math.max(0, lastCenter - firstCenter);
+
+                const spine = document.createElement('div');
+                spine.className = 'children-spine';
+                spine.style.top = `${firstCenter}px`;
+                spine.style.height = `${height}px`;
+                childrenEl.appendChild(spine);
+            });
+        }
+
+        function applyTransform() {
+            const container = document.getElementById('treeContainer');
+            if (container) container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+        }
+
+        function zoomIn() { zoomLevel = Math.min(zoomLevel * 1.2, 3); applyTransform(); }
+        function zoomOut() { zoomLevel = Math.max(zoomLevel / 1.2, 0.3); applyTransform(); }
+        function resetZoom() { zoomLevel = 1; panX = 0; panY = 0; applyTransform(); }
+
+        function setupPanZoom() {
+            const treeArea = document.getElementById('orgTree');
+            if (!treeArea || panZoomListenersAttached) return;
+            panZoomListenersAttached = true;
+
+            treeArea.addEventListener('wheel', function(e) {
+                if (e.target.closest('.node-card')) return;
+                e.preventDefault();
+                const dy = Math.max(-150, Math.min(150, e.deltaY));
+                const factor = Math.exp(-dy * WHEEL_ZOOM_SENSITIVITY);
+                zoomLevel = Math.max(0.3, Math.min(3, zoomLevel * factor));
+                applyTransform();
+            }, { passive: false });
+
+            treeArea.addEventListener('mousedown', function(e) {
+                if (e.target.closest('.node-card')) return;
+                isPanning = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                treeArea.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isPanning) return;
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                applyTransform();
+            });
+
+            document.addEventListener('mouseup', function() {
+                isPanning = false;
+                treeArea.style.cursor = 'grab';
+            });
+        }
+
+        // Collapse/Expand Functions
+        function toggleCollapse(nodeId, event) {
+            if (event) event.stopPropagation();
+            
+            if (collapsedNodes.has(nodeId)) {
+                collapsedNodes.delete(nodeId);
+            } else {
+                collapsedNodes.add(nodeId);
+            }
+            
+            saveData();
+            renderTree();
+        }
+
+        function expandAll() {
+            collapsedNodes.clear();
+            saveData();
+            renderTree();
+        }
+
+        function collapseAll() {
+            people.forEach(person => {
+                const hasChildren = people.some(p => p.reportsTo === person.id);
+                if (hasChildren) collapsedNodes.add(person.id);
+            });
+            saveData();
+            renderTree();
+        }
+
+        function toggleHoverMode() {
+            hoverExpandEnabled = document.getElementById('hoverExpandToggle').checked;
+        }
+
+        function handleNodeHover(nodeId, isHovering) {
+            if (!hoverExpandEnabled) return;
+            
+            if (isHovering && collapsedNodes.has(nodeId)) {
+                hoverExpandTimeout = setTimeout(() => {
+                    collapsedNodes.delete(nodeId);
+                    saveData();
+                    renderTree();
+                }, 400);
+            } else if (!isHovering && hoverExpandTimeout) {
+                clearTimeout(hoverExpandTimeout);
+                hoverExpandTimeout = null;
+            }
+        }
+
+        // Drag and Drop with SortableJS - handles sibling reordering only
+        function initDragAndDrop() {
+            // --- BUG FIX: Added .tree to the selector to allow top-level reordering ---
+            document.querySelectorAll('.children, .tree').forEach(container => {
+                const parentId = container.dataset.childrenOf ? parseInt(container.dataset.childrenOf) : null;
+
+                const sortable = new Sortable(container, {
+                    group: {
+                        name: 'nested',
+                        pull: false,  // Disable pulling - reparenting is done via HTML5 DnD
+                        put: false    // Disable putting - reparenting is done via HTML5 DnD
+                    },
+                    animation: 200,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onStart: function(evt) {
+                        evt.item.closest('.node-card').classList.add('dragging');
+                    },
+                    onEnd: function(evt) {
+                        const card = evt.item.closest('.node-card');
+                        if (card) card.classList.remove('dragging');
+
+                        const nodeId = parseInt(evt.item.dataset.childId || evt.item.dataset.nodeId);
+                        const newParentId = evt.to.dataset.childrenOf ? parseInt(evt.to.dataset.childrenOf) : null;
+
+                        // Only handle reordering within the same parent
+                        if (nodeId && newParentId !== undefined) {
+                            const node = people.find(p => p.id === nodeId);
+                            if (node) {
+                                // Reorder siblings based on DOM order
+                                const newOrder = Array.from(evt.to.children).map(child =>
+                                    parseInt(child.dataset.childId || child.dataset.nodeId)
+                                );
+
+                                // Persist sibling order in the backing array
+                                const siblings = people.filter(p => p.reportsTo === newParentId);
+                                const siblingsById = new Map(siblings.map(s => [s.id, s]));
+                                const orderedSiblings = newOrder
+                                    .map(id => siblingsById.get(id))
+                                    .filter(Boolean);
+                                const orderedIds = new Set(orderedSiblings.map(s => s.id));
+                                siblings.forEach(s => {
+                                    if (!orderedIds.has(s.id)) orderedSiblings.push(s);
+                                });
+
+                                let siblingIndex = 0;
+                                people = people.map(person => {
+                                    if (person.reportsTo === newParentId) {
+                                        const nextSibling = orderedSiblings[siblingIndex++];
+                                        return nextSibling || person;
+                                    }
+                                    return person;
+                                });
+
+                                saveData();
+                                // Don't re-render to preserve the new order visually
+                            }
+                        }
+                    }
+                });
+
+                sortableInstances.push(sortable);
+            });
+        }
+
+        // Drag to Reparent functionality
+        let draggedNodeId = null;
+        let draggedNodeData = null;
+        let dragSourceElement = null;
+
+        function getAllDescendantIds(nodeId) {
+            const descendants = [];
+            const children = people.filter(p => p.reportsTo === nodeId);
+            for (const child of children) {
+                descendants.push(child.id);
+                descendants.push(...getAllDescendantIds(child.id));
+            }
+            return descendants;
+        }
+
+        function canReparent(nodeId, targetId) {
+            // Can't drop on itself
+            if (nodeId === targetId) return false;
+            // Can't drop on its own descendants (would create cycle)
+            if (isDescendant(nodeId, targetId)) return false;
+            // Get current parent
+            const node = people.find(p => p.id === nodeId);
+            if (!node) return false;
+            // Can't drop on same parent (that's reordering, handled by SortableJS)
+            if (node.reportsTo === targetId) return false;
+            return true;
+        }
+
+        function handleDragStart(event, nodeId) {
+            event.stopPropagation();
+            draggedNodeId = nodeId;
+            draggedNodeData = people.find(p => p.id === nodeId);
+            dragSourceElement = event.target.closest('.node-card');
+
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', nodeId);
+
+            // Add global dragging state
+            document.body.classList.add('reparent-dragging');
+            document.getElementById('orgTree').classList.add('reparent-drag-active');
+
+            // Get all descendant IDs for invalid targeting
+            const descendantIds = getAllDescendantIds(nodeId);
+
+            // Mark all cards with appropriate classes
+            document.querySelectorAll('.node-card').forEach(card => {
+                const cardNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
+
+                if (cardNodeId === nodeId) {
+                    // The source node being dragged
+                    card.classList.add('drag-source');
+                } else if (descendantIds.includes(cardNodeId)) {
+                    // Can't drop on descendants
+                    card.classList.add('invalid-drop-target');
+                } else if (!canReparent(nodeId, cardNodeId)) {
+                    // Other invalid targets (same parent, etc)
+                    card.classList.add('invalid-drop-target');
+                } else {
+                    // Valid drop target
+                    card.classList.add('valid-drop-target');
+                }
+            });
+
+            // Set custom drag image if possible
+            if (dragSourceElement) {
+                const rect = dragSourceElement.getBoundingClientRect();
+                event.dataTransfer.setDragImage(dragSourceElement, event.clientX - rect.left, event.clientY - rect.top);
+            }
+        }
+
+        function clearDragState() {
+            document.body.classList.remove('reparent-dragging');
+            document.getElementById('orgTree').classList.remove('reparent-drag-active');
+            document.querySelectorAll('.node-card').forEach(card => {
+                card.classList.remove('drag-source', 'valid-drop-target', 'invalid-drop-target', 'drag-over-valid', 'drag-over-invalid');
+            });
+            draggedNodeId = null;
+            draggedNodeData = null;
+            dragSourceElement = null;
+        }
+
+        // Global dragover handler for drop target highlighting
+        document.addEventListener('dragover', function(e) {
+            if (!draggedNodeId) return;
+
+            const card = e.target.closest('.node-card');
+            if (!card) return;
+
+            // Don't allow dropping on the drag handle itself
+            if (e.target.closest('.drag-handle')) return;
+
+            const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
+
+            // Check if this is a valid drop
+            if (canReparent(draggedNodeId, targetNodeId)) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                card.classList.add('drag-over-valid');
+                card.classList.remove('drag-over-invalid');
+            } else {
+                e.dataTransfer.dropEffect = 'none';
+                card.classList.add('drag-over-invalid');
+                card.classList.remove('drag-over-valid');
+            }
+        });
+
+        document.addEventListener('dragleave', function(e) {
+            const card = e.target.closest('.node-card');
+            if (card) {
+                card.classList.remove('drag-over-valid', 'drag-over-invalid');
+            }
+        });
+
+        document.addEventListener('drop', function(e) {
+            if (!draggedNodeId) return;
+
+            const card = e.target.closest('.node-card');
+            if (card) {
+                const targetNodeId = parseInt(card.closest('[data-node-id]').dataset.nodeId);
+
+                if (canReparent(draggedNodeId, targetNodeId)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Perform the reparenting
+                    const node = people.find(p => p.id === draggedNodeId);
+                    if (node) {
+                        const oldParent = node.reportsTo;
+                        node.reportsTo = targetNodeId;
+                        saveData();
+                        renderTree();
+
+                        // Show feedback
+                        console.log(`Moved ${node.name} to report to ${people.find(p => p.id === targetNodeId)?.name || 'root'}`);
+                    }
+                }
+            }
+
+            clearDragState();
+        });
+
+        // Clear state on drag end (handles case where drop doesn't occur)
+        document.addEventListener('dragend', function(e) {
+            if (draggedNodeId) {
+                clearDragState();
+            }
+        });
+
+        function updateTypeSelect() {
+            const select = document.getElementById('type');
+            select.innerHTML = roleTypes.map(rt => `<option value="${rt.id}">${escapeHTML(rt.name)}</option>`).join('');
+        }
+
+        function updateReportsToOptions() {
+            const select = document.getElementById('reportsTo');
+            const currentId = editingId;
+            let html = '<option value="">None (Top Level)</option>';
+            people.forEach(p => {
+                if (p.id !== currentId && !isDescendant(currentId, p.id)) {
+                    html += `<option value="${p.id}">${escapeHTML(p.name)} - ${escapeHTML(p.role)}</option>`;
+                }
+            });
+            select.innerHTML = html;
+        }
+
+        function isDescendant(parentId, childId) {
+            if (!parentId) return false;
+            const children = people.filter(p => p.reportsTo === parentId);
+            for (const child of children) {
+                if (child.id === childId || isDescendant(child.id, childId)) return true;
+            }
+            return false;
+        }
+
+        function renderRoleTypes() {
+            const container = document.getElementById('roleTypesList');
+            container.innerHTML = roleTypes.map((rt, idx) => `
+                <div class="role-type-item">
+                    <input type="color" value="${rt.color}" onchange="updateRoleTypeColor(${idx}, this.value)">
+                    <input type="text" value="${escapeHTML(rt.name)}" onchange="updateRoleTypeName(${idx}, this.value)" placeholder="Type name">
+                    <button class="icon-btn delete" onclick="removeRoleType(${idx})">✕</button>
+                </div>
+            `).join('');
+            updateTypeSelect();
+        }
+
+        function addRoleType() {
+            const newId = 'type_' + Date.now();
+            roleTypes.push({ id: newId, name: 'New Type', color: '#64748b' });
+            saveData();
+            renderRoleTypes();
+        }
+
+        function updateRoleTypeColor(idx, color) { roleTypes[idx].color = color; saveData(); renderTree(); }
+        function updateRoleTypeName(idx, name) { roleTypes[idx].name = name; saveData(); renderTree(); renderLegend(); }
+
+        function removeRoleType(idx) {
+            if (roleTypes.length <= 1) { alert('You need at least one role type'); return; }
+            const removedType = roleTypes[idx];
+            roleTypes.splice(idx, 1);
+            people.forEach(p => { if (p.type === removedType.id) p.type = roleTypes[0].id; });
+            saveData(); renderRoleTypes(); renderList(); renderTree();
+        }
+
+        function renderList() {
+            const container = document.getElementById('personList');
+            if (people.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>No people added yet</h3></div>`;
+                return;
+            }
+            // --- SECURITY PATCH: Added escapeHTML to all rendered properties ---
+            container.innerHTML = people.map(p => {
+                const reportsTo = people.find(x => x.id === p.reportsTo);
+                const type = roleTypes.find(rt => rt.id === p.type);
+                return `
+                    <div class="person-item ${editingId === p.id ? 'selected' : ''}" onclick="editPerson(${p.id})">
+                        <div class="person-info">
+                            <h3>${escapeHTML(p.name)}</h3>
+                            <p>${escapeHTML(p.role)}${p.domain ? ` • ${escapeHTML(p.domain)}` : ''}${reportsTo ? ` → reports to ${escapeHTML(reportsTo.name)}` : ''}</p>
+                        </div>
+                        <div class="person-actions">
+                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${type?.color || '#3b82f6'};margin-right:8px;"></span>
+                            <button class="icon-btn" onclick="event.stopPropagation(); editPerson(${p.id})">✎</button>
+                            <button class="icon-btn delete" onclick="event.stopPropagation(); confirmDelete(${p.id})">✕</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('personForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const personData = {
+                id: editingId || Date.now(),
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                domain: document.getElementById('domain').value,
+                reportsTo: document.getElementById('reportsTo').value ? parseInt(document.getElementById('reportsTo').value) : null,
+                type: document.getElementById('type').value,
+                accountabilities: document.getElementById('accountabilities').value,
+                decisions: document.getElementById('decisions').value
+            };
+            if (editingId) {
+                const idx = people.findIndex(p => p.id === editingId);
+                people[idx] = personData;
+            } else {
+                people.push(personData);
+            }
+            saveData(); resetForm(); renderList(); updateReportsToOptions(); renderTree();
+        });
+
+        function editPerson(id) {
+            editingId = id;
+            const person = people.find(p => p.id === id);
+            document.getElementById('formTitle').textContent = 'Edit Person';
+            document.getElementById('personId').value = person.id;
+            document.getElementById('name').value = person.name;
+            document.getElementById('role').value = person.role;
+            document.getElementById('domain').value = person.domain || '';
+            document.getElementById('type').value = person.type || roleTypes[0].id;
+            document.getElementById('accountabilities').value = person.accountabilities || '';
+            document.getElementById('decisions').value = person.decisions || '';
+            document.getElementById('deleteBtn').style.display = 'block';
+            updateReportsToOptions();
+            document.getElementById('reportsTo').value = person.reportsTo || '';
+            renderList();
+        }
+
+        function selectPerson(id) { showView('edit'); editPerson(id); }
+
+        function resetForm() {
+            editingId = null;
+            document.getElementById('formTitle').textContent = 'Add Person';
+            document.getElementById('personForm').reset();
+            document.getElementById('deleteBtn').style.display = 'none';
+            updateReportsToOptions(); renderList();
+        }
+
+        // --- BUG FIX: Added renderTree() to correctly refresh the chart ---
+        function confirmDelete(id) {
+            if (confirm('Delete this person? Any people reporting to them will become top-level.')) {
+                people.forEach(p => { if (p.reportsTo === id) p.reportsTo = null; });
+                people = people.filter(p => p.id !== id);
+                collapsedNodes.delete(id);
+                saveData(); resetForm(); renderList(); renderTree();
+            }
+        }
+
+        function deletePerson() { if (editingId) confirmDelete(editingId); }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'export-notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 2000);
+        }
+
+        function printChart() {
+            // Switch to chart view if not already there
+            showView('chart');
+            // Small delay to ensure rendering is complete
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        }
+
+        async function exportPNG() {
+            // Make sure we're in chart view
+            showView('chart');
+
+            const treeContainer = document.getElementById('orgTree');
+            if (!treeContainer) {
+                alert('No chart to export');
+                return;
+            }
+
+            // Show loading notification
+            showNotification('Generating PNG...');
+
+            try {
+                // Get computed styles for line colors
+                const lineColor = getComputedStyle(document.body).getPropertyValue('--line-color').trim() || '#d4d4d8';
+                const bgColor = getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() || '#fafafa';
+
+                // Get the actual tree content
+                const treeEl = document.getElementById('treeContainer');
+                const actualTree = treeEl || treeContainer;
+
+                // Create a cloned container for capture to avoid overflow issues
+                const cloneContainer = document.createElement('div');
+                cloneContainer.style.cssText = `
+                    position: absolute;
+                    left: -9999px;
+                    top: 0;
+                    background: ${bgColor};
+                    padding: 40px;
+                    overflow: visible;
+                `;
+
+                // Clone the tree and reset its transform
+                const clonedTree = actualTree.cloneNode(true);
+                clonedTree.style.transform = 'none';
+                clonedTree.style.position = 'relative';
+
+                // Fix connection lines in clone - set explicit background colors
+                const lineSelectors = ['.horizontal-line-right', '.vertical-connector', '.children-spine', '.vertical-line-to-child'];
+                lineSelectors.forEach(selector => {
+                    clonedTree.querySelectorAll(selector).forEach(el => {
+                        el.style.background = lineColor;
+                    });
+                });
+
+                // Add legend to the clone
+                const legend = document.getElementById('legend');
+                if (legend && legend.innerHTML.trim()) {
+                    const clonedLegend = legend.cloneNode(true);
+                    clonedLegend.style.cssText = 'margin-bottom: 30px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;';
+                    cloneContainer.appendChild(clonedLegend);
+                }
+
+                cloneContainer.appendChild(clonedTree);
+                document.body.appendChild(cloneContainer);
+
+                // Calculate the full bounds of the cloned tree
+                const fullWidth = clonedTree.scrollWidth + 80; // +padding
+                const fullHeight = clonedTree.scrollHeight + (legend ? 80 : 40);
+
+                // Capture the clone with full dimensions
+                const canvas = await html2canvas(cloneContainer, {
+                    backgroundColor: bgColor,
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    width: fullWidth,
+                    height: fullHeight,
+                    x: 0,
+                    y: 0,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: fullWidth,
+                    windowHeight: fullHeight
+                });
+
+                // Clean up the clone
+                document.body.removeChild(cloneContainer);
+
+                // Convert to PNG and download
+                const pngUrl = canvas.toDataURL('image/png');
+                const date = new Date().toISOString().split('T')[0];
+                const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+                const link = document.createElement('a');
+                link.download = `${safeName}_org_chart_${date}.png`;
+                link.href = pngUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showNotification('PNG exported successfully!');
+            } catch (err) {
+                console.error('Export failed:', err);
+                alert('Failed to export PNG. Please try again.');
+            }
+        }
+
+        function exportData() {
+            const data = { 
+                version: '2.0', 
+                exportedAt: new Date().toISOString(), 
+                companyName: companyName, 
+                roleTypes: roleTypes, 
+                people: people,
+                collapsedNodes: [...collapsedNodes]
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const date = new Date().toISOString().split('T')[0];
+            const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${safeName}_org_chart_${date}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.people) throw new Error('Invalid format');
+                    if (people.length > 0 && !confirm('Replace current data?')) return;
+                    companyName = data.companyName || 'Organization';
+                    roleTypes = data.roleTypes || defaultRoleTypes;
+                    people = data.people;
+                    if (data.collapsedNodes) {
+                        collapsedNodes = new Set(data.collapsedNodes);
+                    }
+                    saveData(); init();
+                } catch (err) { alert('Error: ' + err.message); }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        init();
     </script>
-</body>
-</html>
