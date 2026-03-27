@@ -1734,7 +1734,7 @@
             setTimeout(() => { window.print(); }, 100);
         }
 
-        async function exportPNG() {
+       async function exportPNG() {
             showView('chart');
             const treeContainer = document.getElementById('orgTree');
             if (!treeContainer) { alert('No chart to export'); return; }
@@ -1754,6 +1754,10 @@
                 const clonedTree = actualTree.cloneNode(true);
                 clonedTree.style.transform = 'none';
                 clonedTree.style.position = 'relative';
+
+                // --- BUG FIX: Strip collapsed nodes from the clone ---
+                // This prevents html2canvas from calculating massive phantom heights from squished invisible text
+                clonedTree.querySelectorAll('.children-container.collapsed').forEach(el => el.remove());
 
                 const lineSelectors = ['.horizontal-line-right', '.vertical-connector', '.children-spine', '.vertical-line-to-child'];
                 lineSelectors.forEach(selector => {
@@ -1798,7 +1802,6 @@
                 alert('Failed to export PNG. Please try again.');
             }
         }
-
         function exportData() {
             const data = { 
                 version: '2.0', exportedAt: new Date().toISOString(), companyName: companyName, 
